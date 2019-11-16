@@ -1,0 +1,29 @@
+{
+  "name": "MMM-Xbox",
+  "version": "0.0.0",
+  "description": "Xbox Module.",
+  "main": "MMM-Xbox.js.js",
+  "keywords": [
+    "magic mirror",
+    "module",
+    "Xbox",
+    "home status",
+    "magic home"
+  ],
+  "author": "bugs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bugsounet/MMM-Xbox/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bugsounet/MMM-Xboxs"
+  },
+  "homepage": "https://github.com/bugsounet/MMM-Xbox",
+  "dependencies": {
+    "xbox-smartglass-core-node": "^0.6.1",
+    "ping": "^0.2.2",
+    "request": "^2.88.0",
+    "igdb-api-node": "^4.0.3"
+  }
+}
