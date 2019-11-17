@@ -138,8 +138,15 @@ module.exports = NodeHelper.create({
 
 					IGDB_img(self.XBOX.idgame, self.config.igdb_key).then(function(res) {
 						for (let [item, value] of Object.entries(res)) {
-							if (self.XBOX.idgame == value.game) self.XBOX.img = "http:" + value.url
-							else self.XBOX.img = "error"
+							var url = ""
+							if (self.XBOX.idgame == value.game) {
+								url = "http:" + value.url
+								var res = url.replace("thumb", "cover_big");
+                        					self.XBOX.img = res
+							} else {
+								console.log ("[Xbox] Cover error !") 
+								self.XBOX.img = ""
+							}
 						}
 					})
 				}

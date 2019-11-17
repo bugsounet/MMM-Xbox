@@ -77,7 +77,7 @@
 
 #XBOX_COVER {
   width: calc(var(--sp-width) - 40px);
-  height: calc(var(--sp-width) - 40px);
+  height: calc(var(--sp-width) - 40px)+50%;
   margin-bottom:5px;
 }
 

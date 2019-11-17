@@ -1,8 +1,8 @@
 {
   "name": "MMM-Xbox",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Xbox Module.",
-  "main": "MMM-Xbox.js.js",
+  "main": "MMM-Xbox.js",
   "keywords": [
     "magic mirror",
     "module",

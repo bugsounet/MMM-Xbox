@@ -64,6 +64,7 @@ Module.register("MMM-Xbox", {
 			this.LastState = this.Xbox.status
 			this.LastGameApp = this.Xbox.name
 			self.updateDom();
+			this.resetCounter()
 		}
 		if (notification === "UPDATED") {
 			// Mise a jour effectué -> recharge la nouvelle base de donnée Xbox
@@ -80,7 +81,7 @@ Module.register("MMM-Xbox", {
 			m.classList.remove("inactive")
 		} else {
 			m.classList.add("noGame")
-			m.classList.add("inactive")
+			if (this.config.autohide) m.classList.add("inactive")
 		}
 
     		var back = document.createElement("div")
@@ -97,11 +98,7 @@ Module.register("MMM-Xbox", {
 
     		var cover_img = document.createElement("img")
     		cover_img.id = "XBOX_COVER_IMAGE"
-		if (this.Xbox.img) {
-			var str = this.Xbox.img
-			var res = str.replace("thumb", "cover_big");
-			cover_img.src = res
-		}
+		if (this.Xbox.img) cover_img.src = this.Xbox.img
     		else cover_img.src = "./modules/MMM-Xbox/resources/xbox.png"
 
     		cover.appendChild(cover_img)
@@ -142,12 +139,25 @@ Module.register("MMM-Xbox", {
     		device.appendChild(di)
     		var dt = document.createElement("span")
     		dt.className = "text"
-		if(this.Xbox.display) dt.textContent = this.Xbox.display
+		if (this.Xbox.display) dt.textContent = this.Xbox.display
     		else dt.textContent = ""
     		device.appendChild(dt)
 
+    		var time = document.createElement("div")
+    		time.id = "XBOX_TIME"
+		var ti = document.createElement("span")
+		ti.className = "iconify"
+		ti.dataset.icon = "si-glyph:timer"
+		ti.dataset.inline ="false"
+		time.appendChild(ti)
+		var td = document.createElement("span")
+		td.className = "text"
+		td.textContent = "--:--:--"
+		time.appendChild(td)
+
     		info.appendChild(title)
     		info.appendChild(device)
+		info.appendChild(time)
     		fore.appendChild(info)
 
     		m.appendChild(fore)
@@ -166,6 +176,18 @@ Module.register("MMM-Xbox", {
                 		clearInterval(self.intervalDB);
                 		self.sendSocketNotification("UpdateDB",true);
             		}
+        	}, 1000);
+    	},
+
+    	resetCounter: function () {
+        	var self = this;
+        	clearInterval(self.intervalTime);
+		self.counterTime = 0;
+
+        	self.intervalTime = setInterval(function () {
+            		self.counterTime += 1000;
+			var time = document.querySelector("#XBOX_TIME .text")
+			time.textContent = new Date(self.counterTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/)[0];
         	}, 1000);
     	},
 
