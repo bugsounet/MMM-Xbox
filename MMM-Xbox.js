@@ -1,7 +1,6 @@
 Module.register("MMM-Xbox", {
 
 	defaults: {
-		delay: 10 * 1000,
 		debug: false,
 		display: "",
 		ip: "",
@@ -43,6 +42,7 @@ Module.register("MMM-Xbox", {
 		this.Xbox = {}
 		this.VersionDB = ""
 		this.LastState = false
+		this.LastGameApp = ""
 	},
 
 	notificationReceived: function (notification, payload) {
@@ -52,17 +52,22 @@ Module.register("MMM-Xbox", {
             		this.sendSocketNotification("SCAN", this.config);
         	}
 	},
+
 	socketNotificationReceived: function (notification, payload) {
 		if (notification === "RESULT") {
+			var self = this
 			this.Xbox = payload;
+
 			if (this.LastState != this.Xbox.status) this.sendNotification("XBOX_STATE", this.Xbox.status)
+			if (this.Xbox.name && this.LastGameApp != this.Xbox.name) this.sendNotification("XBOX_NAME", this.Xbox.realname ? this.Xbox.realname : this.Xbox.name)
+
 			this.LastState = this.Xbox.status
-			this.IntervalScanDevice();
+			this.LastGameApp = this.Xbox.name
+			self.updateDom();
 		}
 		if (notification === "UPDATED") {
 			// Mise a jour effectué -> recharge la nouvelle base de donnée Xbox
 			this.XboxDBReload();
-			if (payload) this.IntervalScanDB(); // lance une tempo de scan si le payload est sur true
 		}
 	},
 
@@ -117,8 +122,13 @@ Module.register("MMM-Xbox", {
 
     		var tt = document.createElement("span")
     		tt.className = "text"
-		if (this.Xbox.name) tt.innerHTML = this.Xbox.realname ? this.Xbox.realname : this.Xbox.name
-    		//else tt.textContent = this.translate("LOADING");
+		if (this.Xbox.name) {
+			if (this.Xbox.type == "game") tt.innerHTML = this.Xbox.realname ? this.Xbox.realname : this.Xbox.name
+			else {
+				if (this.Xbox.name == "Unkown") tt.innerHTML = this.Xbox.xbname
+				else tt.innerHTML = this.translate(this.Xbox.name)
+			}
+		}
 		else tt.innerHTML = this.translate("LOADING");
     		title.appendChild(tt)
 
@@ -143,22 +153,6 @@ Module.register("MMM-Xbox", {
     		return m
   	},
 
-
-    	IntervalScanDevice: function () {
-        	var self = this;
-		//this.updateGame(self.Xbox.img);
-		clearInterval(self.interval);
-		self.counter = this.config.delay;
-		self.updateDom();
-
-		self.interval = setInterval(function () {
-            		self.counter -= 1000;
-            		if (self.counter <= 0) {
-				clearInterval(self.interval);
-				self.sendSocketNotification("SCAN", false);
-            		}
-        	}, 1000);
-        },
 
     	IntervalScanDB: function () {
         	var self = this;
@@ -209,10 +203,11 @@ Module.register("MMM-Xbox", {
                     			}
                     			self.XboxDB = res;
                     			self.VersionDB = self.XboxDB[0][1] + "." + self.XboxDB[0][2]
-                    			this.sendSocketNotification("UPDATED_OK", "[Xbox] Title Loaded in Xbox Database : " + (self.XboxDB.length-1) + " -- Version : " + self.VersionDB)
+                    			this.sendSocketNotification("UPDATED", "[Xbox] Title Loaded in Xbox Database : " + (self.XboxDB.length-3) + " -- Version : " + self.VersionDB)
                     			this.sendSocketNotification("DB", self.XboxDB)
                 		}
             		}
+			if (xmlHttp.status == 404) this.sendSocketNotification("UPDATED", "[Xbox] DB Read Error !")
         	}
         	xmlHttp.open("GET", db, true)
         	xmlHttp.send(null)
@@ -243,5 +238,11 @@ Module.register("MMM-Xbox", {
         	}
         	return( arrData )
     	},
+
+  	getTranslations: function() {
+    		return {
+      			fr: "translations/fr.json",
+    		}
+  	},
 
 });

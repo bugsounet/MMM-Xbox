@@ -46,13 +46,7 @@ module.exports = NodeHelper.create({
 		"liveid": ""
 	}
 	this.XBOX_db = []
-	this.actually = ""
 	this.lastgame = ""
-
-	this.XBOX_realname= ""
-	this.XBOX_idgame = ""
-	this.XBOX_idcover = ""
-	this.XBOX_img = ""
     },
 
    xbox_Status: function (ip) {
@@ -88,7 +82,7 @@ module.exports = NodeHelper.create({
     	var cmd = "cd " + dir + "; cp xbox.db xbox.db.sav ; rm xbox.db ; git checkout xbox.db"
     	//exec(cmd, (e,so,se)=>{
       		console.log("[Xbox] Fresh Update of the xbox database")
-		self.sendSocketNotification("UPDATED", payload)
+		self.sendSocketNotification("UPDATED")
     	//})
     },
 
@@ -114,39 +108,38 @@ module.exports = NodeHelper.create({
 				this.XBOX.name = this.XBOX_db[nb][1]
 				this.XBOX.type = this.XBOX_db[nb][2]
 				newname = true
-				this.actually = this.XBOX.name
 			}
 		}
 
 		if(!newname && this.XBOX.status && this.XBOX.xbname != null) {
-			console.log("[Xbox] Xbox Title !")
-			this.XBOX.name = "inconnu"
+			console.log("[Xbox] Unkown Title ! -> " + this.XBOX.xbname)
+			this.XBOX.name = "Unkown"
 			this.XBOX.type = null
 			this.XBOX.img = null
 			newname = false
 		}
 
-		if (this.actually != this.lastgame) newgame = true
+		if (this.lastgame != this.XBOX.name) newgame = true
 
 		if (this.XBOX.type == "app") {
-			this.XBOX_idgame = null
-			this.XBOX_idcover = null
-			this.XBOX_realname = null
-			this.XBOX_img = null
+			this.XBOX.idgame = null
+			this.XBOX.idcover = null
+			this.XBOX.realname = null
+			this.XBOX.img = null
 		}
 
-		if (newgame && this.XBOX.type == "game" && this.XBOX.name != "inconnu") {
-			console.log("[Xbox] Scan IGDB")
+		if (newgame && this.XBOX.type == "game" && this.XBOX.name != "Unkown") {
+			console.log("[Xbox] IGDB SCAN...")
 			IGDB_game(this.XBOX.name, self.config.igdb_key).then(function(res) {
 				for (let [item, value] of Object.entries(res)) {
-					self.XBOX_idgame = value.id;
-					self.XBOX_idcover = value.cover;
-					self.XBOX_realname = value.name;
+					self.XBOX.idgame = value.id;
+					self.XBOX.idcover = value.cover;
+					self.XBOX.realname = value.name;
 
-					IGDB_img(self.XBOX_idgame, self.config.igdb_key).then(function(res) {
+					IGDB_img(self.XBOX.idgame, self.config.igdb_key).then(function(res) {
 						for (let [item, value] of Object.entries(res)) {
-							if (self.XBOX_idgame == value.game) self.XBOX_img = "http:" + value.url
-							else self.XBOX_img = "error"
+							if (self.XBOX.idgame == value.game) self.XBOX.img = "http:" + value.url
+							else self.XBOX.img = "error"
 						}
 					})
 				}
@@ -156,28 +149,33 @@ module.exports = NodeHelper.create({
             } , 2000);
 
 	    setTimeout(() => {
-		this.XBOX.idgame = this.XBOX_idgame
-		this.XBOX.idcover = this.XBOX_idcover
-		this.XBOX.realname = this.XBOX_realname
-		this.XBOX.img = this.XBOX_img
+		// debug mode
 		if (this.XBOX.status && this.config.debug) {
-			console.log("[Xbox] " + this.config.display + " (" + this.config.ip + "): " + self.XBOX.status + " -> " + self.XBOX.xbname);
+			console.log("[Xbox] " + this.config.display + " (" + this.config.ip + "): " + this.XBOX.status + (this.XBOX.xbname ? (" -> " + this.XBOX.xbname) : ("")));
 			if (this.XBOX.type == "game" ) console.log("[Xbox] Game: " + this.XBOX.realname + " -idgame: " + this.XBOX.idgame + " -idcover: " + this.XBOX.idcover + " -img: " + this.XBOX.img)
-			else console.log("[Xbox] App: " + this.XBOX.name)
+			else {
+				if (this.XBOX.name) console.log("[Xbox] App: " + this.XBOX.name)
+			}
 			console.log("[Xbox] All informations collected !");
 		}
+
+		if ((this.lastgame != this.XBOX.name)) {
+			self.sendSocketNotification("RESULT", this.XBOX); // Envoi les infos si changement de titre
+			// Console Log !
+			if (this.XBOX.name && this.XBOX.type == "game" && !this.config.debug) console.log("[Xbox] Game: " + (this.XBOX.realname ? this.XBOX.realname : this.XBOX.name))
+			else if (this.XBOX.name && !this.config.debug) console.log("[Xbox] App: " + this.XBOX.name)
+		}
+
 		this.lastgame = this.XBOX.name
-		//console.log(this.XBOX)
-		self.sendSocketNotification("RESULT", this.XBOX);
+		this.socketNotificationReceived("SCAN"); // Fin du scan ! On Relance le Scan
 	    }, 4000);
         }
+
 	if (notification === 'UpdateDB') {
 		//this.updateDB(payload);
 	}
-	if (notification === 'LOG') console.log("[Xbox] Xbox Database: Please ask update of the title " + payload) 
-	if (notification === 'UPDATED_OK') console.log(payload) 
-	if (notification === 'DB') {
-		this.XBOX_db = payload
-	}
+
+	if (notification === 'UPDATED') console.log(payload) 
+	if (notification === 'DB') this.XBOX_db = payload
     },
 });
