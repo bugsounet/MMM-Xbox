@@ -5,7 +5,8 @@ Module.register("MMM-Xbox", {
 		display: "",
 		ip: "",
 		liveID: "",
-		igdb_key: ""
+		igdb_key: "",
+		autohide: false
 	},
 
   	configAssignment : function (result) {
