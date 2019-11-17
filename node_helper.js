@@ -76,20 +76,20 @@ module.exports = NodeHelper.create({
 	}
     },
 
-    updateDB: function(payload) {
+    updateDB: function(payload) { // fresh update of db
 	var self = this;
-    	var dir = path.resolve(__dirname, "")
-    	var cmd = "cd " + dir + "; cp xbox.db xbox.db.sav ; rm xbox.db ; git checkout xbox.db"
-    	//exec(cmd, (e,so,se)=>{
-      		console.log("[Xbox] Fresh Update of the xbox database")
-		self.sendSocketNotification("UPDATED")
-    	//})
+    	var dir = path.resolve(__dirname, "db")
+    	var cmd = "cd " + dir + "; cp xbox.db xbox.db.sav ; rm xbox.db ; wget -q https://raw.githubusercontent.com/bugsounet/MMM-HomeStatus/master/xbox.db"
+    	exec(cmd, (e,so,se)=>{
+      		console.log("[Xbox] Fresh Update of the xbox database from MMM-HomeStatus GitHub")
+		self.sendSocketNotification("UPDATED", payload)
+    	})
     },
 
     socketNotificationReceived: function(notification, payload) {
         if (notification === 'SCAN') {
 	    var self = this;
-	    if (payload) {
+	    if (payload) { // first start
 		this.config = payload;
 		this.updateDB(true);
 	    }
@@ -172,10 +172,10 @@ module.exports = NodeHelper.create({
         }
 
 	if (notification === 'UpdateDB') {
-		//this.updateDB(payload);
+		this.updateDB(payload);
 	}
 
-	if (notification === 'UPDATED') console.log(payload) 
+	if (notification === 'UPDATED') console.log(payload)
 	if (notification === 'DB') this.XBOX_db = payload
     },
 });

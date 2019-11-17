@@ -68,6 +68,7 @@ Module.register("MMM-Xbox", {
 		if (notification === "UPDATED") {
 			// Mise a jour effectué -> recharge la nouvelle base de donnée Xbox
 			this.XboxDBReload();
+			if (payload) this.IntervalScanDB(); // lance une tempo de scan si le payload est sur true
 		}
 	},
 
