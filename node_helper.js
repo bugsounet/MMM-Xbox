@@ -86,6 +86,38 @@ module.exports = NodeHelper.create({
     	})
     },
 
+    Xbox_On: function() {
+	var self = this
+	console.log("[Xbox] Request to start the xbox (" + self.config.ip + ")")
+	Smartglass().powerOn({
+		live_id : self.config.liveID,
+		tries: 5,
+		ip : self.config.ip
+	}).then(function (res) {
+		console.log("[Xbox] Console booted: ", res)
+	}, function(error) {
+		console.log("[Xbox] Booting console failed: ", error)
+	});
+    },
+
+    Xbox_Off: function() {
+        var self = this
+	var sgClient = Smartglass()
+
+        console.log("[Xbox] Request to shutdown the xbox (" + self.config.ip + ")")
+        sgClient.connect(self.config.ip).then(function () {
+                setTimeout(function(){
+			sgClient.powerOff().then(function(status){
+				console.log("[Xbox] Shutdown succes!")
+        		}, function(error) {
+                		console.log("[Xbox] Shutdown error: ", error)
+			})
+		}.bind(sgClient),1000)
+	}, function(error){
+		console.log("[Xbox] Shutdown error: ", error)
+        });
+    },
+
     socketNotificationReceived: function(notification, payload) {
         if (notification === 'SCAN') {
 	    var self = this;
@@ -181,8 +213,10 @@ module.exports = NodeHelper.create({
 	if (notification === 'UpdateDB') {
 		this.updateDB(payload);
 	}
-
 	if (notification === 'UPDATED') console.log(payload)
 	if (notification === 'DB') this.XBOX_db = payload
+	if (notification === 'XBOX_ON') this.Xbox_On()
+	if (notification === 'XBOX_OFF') this.Xbox_Off()
+
     },
 });

@@ -51,6 +51,16 @@ Module.register("MMM-Xbox", {
             		//DOM creation complete, let's start the module
             		this.sendSocketNotification("SCAN", this.config);
         	}
+		if (notification === 'XBOXDB_UPDATE') {
+			// demande une nouvelle base de donnée depuis GitHub
+			this.sendSocketNotification("UpdateDB", false);
+		}
+		if (notification === 'XBOX_ON') {
+			this.sendSocketNotification("XBOX_ON");
+		}
+		if (notification === 'XBOX_OFF') {
+                        this.sendSocketNotification("XBOX_OFF");
+                }
 	},
 
 	socketNotificationReceived: function (notification, payload) {
@@ -267,5 +277,59 @@ Module.register("MMM-Xbox", {
       			fr: "translations/fr.json",
     		}
   	},
+
+/* TelegramBot Commands */
+
+  	getCommands: function () {
+    		return [
+      			{
+        			command: "updatedb",
+        			callback: "telegramCommand",
+        			description: "Forcer la mise à jour de la base de donnée de MMM-Xbox."
+      			},
+      			{
+				command: "versiondb",
+				callback: "telegramCommand",
+				description: "Affiche la version de la base de donnée de MMM-Xbox."
+      			},
+			{	command: "turnon",
+				callback: "telegramCommand",
+                                description: "Allume la Xbox."
+			},
+			{       command: "turnoff",
+                                callback: "telegramCommand",
+                                description: "Eteins la Xbox."
+                        },
+			/*
+			{       command: "launch",
+                                callback: "telegramCommand",
+                                description: "Lance un jeu ou une application."
+                        }
+			*/
+
+    	   	]
+  	},
+
+  	telegramCommand: function(command, handler) {
+    		if (command == "updatedb") {
+      			handler.reply("TEXT", "La demande de mise à jour a été envoyé.")
+      			this.notificationReceived("XBOXDB_UPDATE", handler.args, "MMM-TelegramBot")
+    		}
+    		if (command == "versiondb") handler.reply("TEXT", "Base de donnée version : " + this.VersionDB)
+		if (command == "turnon") {
+                        handler.reply("TEXT", "La commande a été envoyé.")
+                        this.notificationReceived("XBOX_ON", handler.args, "MMM-TelegramBot")
+		}
+		if (command == "turnoff") {
+                        handler.reply("TEXT", "La commande a été envoyé.")
+                        this.notificationReceived("XBOX_OFF", handler.args, "MMM-TelegramBot")
+                }
+		/*
+		if (command == "launch") {
+                        handler.reply("TEXT", "Commande en développement...")
+                        this.notificationReceived("XBOX_LAUNCH", handler.args, "MMM-TelegramBot")
+                }
+		*/
+  },
 
 });
