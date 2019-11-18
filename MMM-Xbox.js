@@ -74,8 +74,8 @@ Module.register("MMM-Xbox", {
 
 			this.LastState = this.Xbox.status
 			this.LastGameApp = this.Xbox.name
-			self.updateDom();
-			this.resetCounter()
+			this.updateDom();
+			if (this.Xbox.name) this.resetCounter()
 		}
 		if (notification === "UPDATED") {
 			// Mise a jour effectué -> recharge la nouvelle base de donnée Xbox
@@ -156,6 +156,7 @@ Module.register("MMM-Xbox", {
 
     		var time = document.createElement("div")
     		time.id = "XBOX_TIME"
+		if (this.Xbox.name) {
 		var ti = document.createElement("span")
 		ti.className = "iconify"
 		ti.dataset.icon = "si-glyph:timer"
@@ -165,6 +166,7 @@ Module.register("MMM-Xbox", {
 		td.className = "text"
 		td.textContent = "--:--:--"
 		time.appendChild(td)
+		}
 
     		info.appendChild(title)
     		info.appendChild(device)
@@ -193,16 +195,17 @@ Module.register("MMM-Xbox", {
     	resetCounter: function () {
         	var self = this;
         	clearInterval(self.intervalTime);
-		self.counterTime = 0;
+		self.counterTime = 0
 
         	self.intervalTime = setInterval(function () {
             		self.counterTime += 1000;
+
 			var time = document.querySelector("#XBOX_TIME .text")
 			time.textContent = new Date(self.counterTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/)[0];
         	}, 1000);
     	},
 
-   	getScripts: function () {
+ 	getScripts: function () {
 		var iconify= "https://code.iconify.design/1/1.0.0-rc7/iconify.min.js"
     		r = []
 		r.push(iconify)
