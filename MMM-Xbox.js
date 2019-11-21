@@ -49,7 +49,7 @@ Module.register("MMM-Xbox", {
 
         	if (notification === 'DOM_OBJECTS_CREATED') {
             		//DOM creation complete, let's start the module
-            		this.sendSocketNotification("INIT", this.config);
+			setTimeout(() => { this.sendSocketNotification("INIT", this.config); } , 10000);
         	}
 		if (notification === 'XBOX_ON') {
 			this.sendSocketNotification("XBOX_ON");
@@ -73,7 +73,7 @@ Module.register("MMM-Xbox", {
 			if (this.Xbox.name) this.resetCounter()
 		}
 		if (notification === "INITIALIZED") {
-			setTimeout(() => { this.sendSocketNotification("LOGIN"); } , 2500);
+			if (payload) setTimeout(() => { this.sendSocketNotification("LOGIN"); } , 10000);
 		}
 	},
 
@@ -116,7 +116,7 @@ Module.register("MMM-Xbox", {
 
     		var ti = document.createElement("span")
     		ti.className = "iconify"
-		if (this.Xbox.type == "game") ti.dataset.icon = "mdi:xbox-controller"
+		if (this.Xbox.type == "Game") ti.dataset.icon = "mdi:xbox-controller"
 		else ti.dataset.icon = "mdi:xbox"
 
     		ti.dataset.inline = "false"
@@ -125,11 +125,7 @@ Module.register("MMM-Xbox", {
     		var tt = document.createElement("span")
     		tt.className = "text"
 		if (this.Xbox.name) {
-			if (this.Xbox.type == "game") tt.innerHTML = this.Xbox.realname ? this.Xbox.realname : this.Xbox.name
-			else {
-				if (this.Xbox.name == "Unkown") tt.innerHTML = this.Xbox.xbname
-				else tt.innerHTML = this.translate(this.Xbox.name)
-			}
+			tt.innerHTML = this.translate(this.Xbox.name)
 		}
 		else tt.innerHTML = this.translate("LOADING");
     		title.appendChild(tt)

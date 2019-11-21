@@ -19,7 +19,6 @@ module.exports = NodeHelper.create({
 	}
 	this.lastgame = ""
 	this.retry = 0
-	//this.messsage = {}
     },
 
     xbox_device: function () {
@@ -29,7 +28,7 @@ module.exports = NodeHelper.create({
 
 	request('http://127.0.0.1:5557/device?addr=192.168.0.39', function (error, response, body) {
                 if (error) {
-                        return console.error('[Xbox] Device error:', err);
+                        return console.log('[Xbox] Device error:', err);
                 }
                 message = JSON.parse(body)
 		//console.log("device: ", message)
@@ -43,9 +42,9 @@ module.exports = NodeHelper.create({
 	var self = this;
 
 	if (this.retry == 0) console.log("[Xbox] Connecting to Xbox...");
-	request('http://192.168.0.32:5557/device/' + self.config.liveID + '/connect', function (error, response, body) {
+	request('http://127.0.0.1:5557/device/' + self.config.liveID + '/connect', function (error, response, body) {
 		if (error) {
-                        return console.error('[Xbox] Connect error:', err);
+                        return console.log('[Xbox] Connect error:', error);
                 }
 		message = JSON.parse(body)
 		//console.log("connect: ", message)
@@ -54,18 +53,18 @@ module.exports = NodeHelper.create({
 			self.xbox_status();
 		}
 		else setTimeout(() => {
-			self.retry = 1 
+			self.retry = 1
 			self.xbox_device();
-		} , 2000) 
+		} , 2000)
 	})
     },
 
     xbox_status: function() {
 	var self = this;
 
-	request('http://192.168.0.32:5557/device/' + self.config.liveID + '/console_status', function (error, response, body) {
+	request('http://127.0.0.1:5557/device/' + self.config.liveID + '/console_status', function (error, response, body) {
                 if (error) {
-                        return console.error('[Xbox] Connect error:', error);
+                        return console.log('[Xbox] Connect error:', error);
                 }
                 message = JSON.parse(body)
 		//console.log("status: ", message)
@@ -123,8 +122,8 @@ module.exports = NodeHelper.create({
 	}
 
 
-	request.post({url:'http://localhost:5557/auth/login', formData: loginData }, function optionalCallback(err, httpResponse, body) {
-  		if (err) return console.error('[Xbox] Login error:', err);
+	request.post({url:'http://127.0.0.1:5557/auth/login', formData: loginData }, function optionalCallback(err, httpResponse, body) {
+  		if (err) return console.log('[Xbox] Login error:', err);
 
 		message = JSON.parse(body)
 
@@ -142,42 +141,22 @@ module.exports = NodeHelper.create({
     xbox_on: function() {
 	var self = this
 	console.log("[Xbox] Request to start the xbox (" + self.config.ip + ")")
-	Smartglass().powerOn({
-		live_id : self.config.liveID,
-		tries: 5,
-		ip : self.config.ip
-	}).then(function (res) {
-		console.log("[Xbox] Console booted: ", res)
-	}, function(error) {
-		console.log("[Xbox] Booting console failed: ", error)
-	});
+	// to do :)
     },
 
     xbox_off: function() {
         var self = this
-	var sgClient = Smartglass()
-
         console.log("[Xbox] Request to shutdown the xbox (" + self.config.ip + ")")
-        sgClient.connect(self.config.ip).then(function () {
-                setTimeout(function(){
-			sgClient.powerOff().then(function(status){
-				console.log("[Xbox] Shutdown succes!")
-        		}, function(error) {
-                		console.log("[Xbox] Shutdown error: ", error)
-			})
-		}.bind(sgClient),1000)
-	}, function(error){
-		console.log("[Xbox] Shutdown error: ", error)
-        });
+	// to do !
     },
 
     socketNotificationReceived: function(notification, payload) {
 	if (notification === "INIT") {
 		var self = this
 		this.config = payload;
-		const somePath = userHome + '/.local/bin/xbox-rest-server'
-		let fileName = path.basename(somePath)
-		let filePath = path.dirname(somePath)
+		const RestPath = userHome + '/.local/bin/xbox-rest-server'
+		let fileName = path.basename(RestPath)
+		let filePath = path.dirname(RestPath)
 
 		console.log("[Xbox] Rest Server Launch...");
                 PythonShell.run(fileName, { scriptPath: filePath }, function (err, data) {
