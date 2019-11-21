@@ -2,7 +2,7 @@
 
 ## Under development...
 
-~~* Use MMM-HomeStatus xbox.db database : ok~~
+* ~~Use MMM-HomeStatus xbox.db database : ok~~
 * Use SmartGlass Rest Server : ok
 * Show cover of the current game on Xbox: ok
 * Translation if app : ok (default: English)
@@ -14,7 +14,7 @@
 * Hide module when inactive : ok (option)
 * TelegramBot Commands : ok -> need to rewrite with Rest Server
 * Translate Telegram Commands : not yet implented just only French reply
-~~* Auto update Xbox Database from MMM-HomeStatus module : ok (every 4 hours or force by TelegramBot)~~
+* ~~Auto update Xbox Database from MMM-HomeStatus module : ok (every 4 hours or force by TelegramBot)~~
 * Launch Game by TelegramBot or notification : not yet implented
 
 ## Dev Screenshoot
