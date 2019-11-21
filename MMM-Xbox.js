@@ -1,12 +1,13 @@
 Module.register("MMM-Xbox", {
 
 	defaults: {
+		autohide: false,
 		debug: false,
 		display: "",
 		ip: "",
 		liveID: "",
-		igdb_key: "",
-		autohide: false
+		xboxlivelogin: "",
+		xboxlivepassword: ""
 	},
 
   	configAssignment : function (result) {
@@ -39,9 +40,7 @@ Module.register("MMM-Xbox", {
 	start: function () {
 		this.config = this.configAssignment({}, this.defaults, this.config)
 		this.Init = false
-		this.XboxDB = {}
 		this.Xbox = {}
-		this.VersionDB = ""
 		this.LastState = false
 		this.LastGameApp = ""
 	},
@@ -50,12 +49,8 @@ Module.register("MMM-Xbox", {
 
         	if (notification === 'DOM_OBJECTS_CREATED') {
             		//DOM creation complete, let's start the module
-            		this.sendSocketNotification("SCAN", this.config);
+            		this.sendSocketNotification("INIT", this.config);
         	}
-		if (notification === 'XBOXDB_UPDATE') {
-			// demande une nouvelle base de donnée depuis GitHub
-			this.sendSocketNotification("UpdateDB", false);
-		}
 		if (notification === 'XBOX_ON') {
 			this.sendSocketNotification("XBOX_ON");
 		}
@@ -70,17 +65,15 @@ Module.register("MMM-Xbox", {
 			this.Xbox = payload;
 
 			if (this.LastState != this.Xbox.status) this.sendNotification(this.Xbox.status ? "XBOX_ACTIVE" : "XBOX_INACTIVE")
-			if (this.Xbox.name && this.LastGameApp != this.Xbox.name) this.sendNotification("XBOX_NAME", this.Xbox.realname ? this.Xbox.realname : this.Xbox.name)
+			if (this.Xbox.name && this.LastGameApp != this.Xbox.name) this.sendNotification("XBOX_NAME", this.Xbox.name)
 
 			this.LastState = this.Xbox.status
 			this.LastGameApp = this.Xbox.name
 			this.updateDom();
 			if (this.Xbox.name) this.resetCounter()
 		}
-		if (notification === "UPDATED") {
-			// Mise a jour effectué -> recharge la nouvelle base de donnée Xbox
-			this.XboxDBReload();
-			if (payload) this.IntervalScanDB(); // lance une tempo de scan si le payload est sur true
+		if (notification === "INITIALIZED") {
+			setTimeout(() => { this.sendSocketNotification("LOGIN"); } , 2500);
 		}
 	},
 
@@ -97,7 +90,7 @@ Module.register("MMM-Xbox", {
 
     		var back = document.createElement("div")
     		back.id = "XBOX_BACKGROUND"
-		if (this.Xbox.img) back.style.backgroundImage = `url(${this.Xbox.img})`
+		if (this.Xbox.type == "Game" && this.Xbox.img) back.style.backgroundImage = `url(${this.Xbox.img})`
 		else back.style.backgroundImage = ""
     		m.appendChild(back)
 
@@ -177,21 +170,6 @@ Module.register("MMM-Xbox", {
     		return m
   	},
 
-
-    	IntervalScanDB: function () {
-        	var self = this;
-        	clearInterval(self.intervalDB);
-        	self.counterDB = 4 * 60 * 60 * 1000 // mise a jour tous les 4 heures
-
-        	self.intervalDB = setInterval(function () {
-            		self.counterDB -= 1000;
-            		if (self.counterDB <= 0) {
-                		clearInterval(self.intervalDB);
-                		self.sendSocketNotification("UpdateDB",true);
-            		}
-        	}, 1000);
-    	},
-
     	resetCounter: function () {
         	var self = this;
         	clearInterval(self.intervalTime);
@@ -216,67 +194,7 @@ Module.register("MMM-Xbox", {
 		return ["MMM-Xbox.css"]
     	},
 
-    	XboxDBReload: function () {
-        	var self = this;
-        	self.XboxDB = {};
-        	this.readDB();
-    	},
-
-    	readDB: function () {
-        	var self = this;
-        	var db = "/modules/MMM-Xbox/db/xbox.db"
-        	var xmlHttp = new XMLHttpRequest()
-        	xmlHttp.onreadystatechange = () => {
-            		var res = []
-            		if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-                		var lines = xmlHttp.responseText.split(/[\r\n]+/)
-                		if (lines.length > 0) {
-                    			for(var i = 0; i < lines.length; i++) {
-                    				var line = lines[i]
-                        			if (line != "") {
-                        				var a = this.DBToArray(line, ",")
-                        				res.push(a[0])
-                        			}
-                    			}
-                    			self.XboxDB = res;
-                    			self.VersionDB = self.XboxDB[0][1] + "." + self.XboxDB[0][2]
-                    			this.sendSocketNotification("UPDATED", "[Xbox] Title Loaded in Xbox Database : " + (self.XboxDB.length-3) + " -- Version : " + self.VersionDB)
-                    			this.sendSocketNotification("DB", self.XboxDB)
-                		}
-            		}
-			if (xmlHttp.status == 404) this.sendSocketNotification("UPDATED", "[Xbox] DB Read Error !")
-        	}
-        	xmlHttp.open("GET", db, true)
-        	xmlHttp.send(null)
-    	},
-
-    	DBToArray: function (strData, strDelimiter){
-        	strDelimiter = (strDelimiter || ",")
-        	var objPattern = new RegExp(
-        	(
-            	"(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-            	"(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-            	"([^\"\\" + strDelimiter + "\\r\\n]*))"
-        	), "gi")
-        	var arrData = [[]]
-        	var arrMatches = null
-        	while (arrMatches = objPattern.exec( strData )){
-            		var strMatchedDelimiter = arrMatches[ 1 ]
-            		if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter) ){
-                		arrData.push( [] )
-            		}
-            		if (arrMatches[ 2 ]){
-                		var strMatchedValue = arrMatches[ 2 ].replace(
-                		new RegExp( "\"\"", "g" ), "\"" )
-            		} else {
-                		var strMatchedValue = arrMatches[ 3 ]
-            		}
-            		arrData[ arrData.length - 1 ].push( strMatchedValue )
-        	}
-        	return( arrData )
-    	},
-
-  	getTranslations: function() {
+	getTranslations: function() {
     		return {
       			fr: "translations/fr.json",
     		}
@@ -286,17 +204,7 @@ Module.register("MMM-Xbox", {
 
   	getCommands: function () {
     		return [
-      			{
-        			command: "updatedb",
-        			callback: "telegramCommand",
-        			description: "Forcer la mise à jour de la base de donnée de MMM-Xbox."
-      			},
-      			{
-				command: "versiondb",
-				callback: "telegramCommand",
-				description: "Affiche la version de la base de donnée de MMM-Xbox."
-      			},
-			{	command: "turnon",
+      			{	command: "turnon",
 				callback: "telegramCommand",
                                 description: "Allume la Xbox."
 			},
@@ -315,11 +223,6 @@ Module.register("MMM-Xbox", {
   	},
 
   	telegramCommand: function(command, handler) {
-    		if (command == "updatedb") {
-      			handler.reply("TEXT", "La demande de mise à jour a été envoyé.")
-      			this.notificationReceived("XBOXDB_UPDATE", handler.args, "MMM-TelegramBot")
-    		}
-    		if (command == "versiondb") handler.reply("TEXT", "Base de donnée version : " + this.VersionDB)
 		if (command == "turnon") {
                         handler.reply("TEXT", "La commande a été envoyé.")
                         this.notificationReceived("XBOX_ON", handler.args, "MMM-TelegramBot")

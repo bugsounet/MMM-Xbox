@@ -1,33 +1,9 @@
 const path = require("path")
 var request = require('request');
 var NodeHelper = require('node_helper');
-var ping = require('ping');
-var Smartglass = require('xbox-smartglass-core-node');
 var exec = require('child_process').exec
-const igdb = require('igdb-api-node').default;
-//const date = require('date-and-time');
-
-
-async function IGDB_game(name,key) {
-	const response = await igdb(key)
-    	.fields('name,cover')
-    	.limit(1)
-    	.search(name)
-	.where('platforms = (49)')
-    	.request('/games');
-
-	return response.data
-};
-
-async function IGDB_img(id,key) {
-	const response = await igdb(key)
-	.fields('game,url')
-	.limit(1)
-	.where('game = ' + id)
-	.request('/covers');
-
-	return response.data
-};
+var {PythonShell} = require('python-shell');
+const userHome = require('user-home');
 
 module.exports = NodeHelper.create({
 
@@ -37,134 +13,130 @@ module.exports = NodeHelper.create({
 		"ip" : "",
 		"display": "",
 		"status": false,
-		"xbname": null,
 		"name" : null,
-		"realname" : null,
 		"type": null,
-		"idgame": null,
-		"idcover": null,
-		"img": "",
-		"liveid": ""
+		"img": ""
 	}
-	this.XBOX_db = []
 	this.lastgame = ""
+	this.retry = 0
+	//this.messsage = {}
     },
 
-    xbox_status: function (ip) {
-	var sgClient = Smartglass()
+    xbox_device: function () {
 	var self = this;
-	var deviceStatus = { current_app: false, connection_status: false };
 
-	if (this.config.debug) console.log("[Xbox] Collecting Xbox informations ...");
+	if (this.retry == 0) console.log("[Xbox] Collecting Xbox informations ...");
 
-	sgClient.connect(ip).then(function(){
-		self.XBOX.status = true;
-	}, function(error){
-		self.XBOX.status = false;
-		self.XBOX.xbname = null;
-		self.XBOX.name = null;
-		self.XBOX.type = null
-	});
+	request('http://127.0.0.1:5557/device?addr=192.168.0.39', function (error, response, body) {
+                if (error) {
+                        return console.error('[Xbox] Device error:', err);
+                }
+                message = JSON.parse(body)
+		//console.log("device: ", message)
 
-	if (this.XBOX.status) {
-		sgClient.on('_on_console_status', function(message, xbox, remote, smartglass){
-			deviceStatus.connection_status = true
-			if(message.packet_decoded.protected_payload.apps[0] != undefined){
-				if(deviceStatus.current_app != message.packet_decoded.protected_payload.apps[0].aum_id){
-					deviceStatus.current_app = message.packet_decoded.protected_payload.apps[0].aum_id;
-					self.XBOX.xbname = deviceStatus.current_app;
-				}
-			}
-		}.bind(deviceStatus));
-	}
-	setTimeout(() => {
-		var newgame = false
-		var newname = false
-		this.XBOX.ip = this.config.ip;
-		this.XBOX.display = this.config.display;
-		this.XBOX.liveid = this.config.liveID
-		for ( var nb in this.XBOX_db ) { // search title app in xbox db
-			if(this.XBOX_db[nb][0] == this.XBOX.xbname) {
-				this.XBOX.name = this.XBOX_db[nb][1]
-				this.XBOX.type = this.XBOX_db[nb][2]
-				newname = true
-			}
-		}
-
-		if (this.lastgame != this.XBOX.name) newgame = true
-
-		if(!newname && this.XBOX.status && this.XBOX.xbname != null) {
-			if (this.XBOX.name != "Unkown") console.log("[Xbox] Unkown Title ! -> " + this.XBOX.xbname)
-			this.XBOX.name = "Unkown"
-			this.XBOX.type = null
-			this.XBOX.img = null
-		}
-
-		if (this.XBOX.type == "app") {
-			this.XBOX.idgame = null
-			this.XBOX.idcover = null
-			this.XBOX.realname = null
-			this.XBOX.img = null
-		}
-
-		if (newgame && this.XBOX.type == "game" && this.XBOX.name != "Unkown") {
-			console.log("[Xbox] IGDB SCAN...")
-			IGDB_game(this.XBOX.name, self.config.igdb_key).then(function(res) {
-				for (let [item, value] of Object.entries(res)) {
-					self.XBOX.idgame = value.id;
-					self.XBOX.idcover = value.cover;
-					self.XBOX.realname = value.name;
-
-					IGDB_img(self.XBOX.idgame, self.config.igdb_key).then(function(res) {
-						for (let [item, value] of Object.entries(res)) {
-							var url = ""
-							if (self.XBOX.idgame == value.game) {
-								url = "http:" + value.url
-								var res = url.replace("thumb", "cover_big");
-                        					self.XBOX.img = res
-							} else {
-								console.log ("[Xbox] Cover error !") 
-								self.XBOX.img = ""
-							}
-						}
-					})
-				}
-			})
-		}
-
-	} , 2000);
+		if(message.success == true) self.xbox_connect();
+		else self.xbox_login();
+	})
     },
+
+    xbox_connect: function () {
+	var self = this;
+
+	if (this.retry == 0) console.log("[Xbox] Connecting to Xbox...");
+	request('http://192.168.0.32:5557/device/' + self.config.liveID + '/connect', function (error, response, body) {
+		if (error) {
+                        return console.error('[Xbox] Connect error:', err);
+                }
+		message = JSON.parse(body)
+		//console.log("connect: ", message)
+		if (message.success == true) {
+			if (self.retry == 0) console.log("[Xbox] Connected to " + self.config.ip + " !")
+			self.xbox_status();
+		}
+		else setTimeout(() => {
+			self.retry = 1 
+			self.xbox_device();
+		} , 2000) 
+	})
+    },
+
+    xbox_status: function() {
+	var self = this;
+
+	request('http://192.168.0.32:5557/device/' + self.config.liveID + '/console_status', function (error, response, body) {
+                if (error) {
+                        return console.error('[Xbox] Connect error:', error);
+                }
+                message = JSON.parse(body)
+		//console.log("status: ", message)
+		if (message.console_status.active_titles[0] && message.success == true) {
+			if (self.retry == 1) console.log("[Xbox] Reconnected to " + self.config.ip + " !")
+			self.XBOX.status = true;
+			self.XBOX.ip = self.config.ip;
+			self.XBOX.display = self.config.display;
+			self.XBOX.name = message.console_status.active_titles[0].name;
+			self.XBOX.type = message.console_status.active_titles[0].type;
+			self.XBOX.img = message.console_status.active_titles[0].image;
+			self.xbox_send();
+			self.retry = 0
+		} else {
+			self.XBOX.status = false;
+                        self.XBOX.ip = self.config.ip;
+                        self.XBOX.display = self.config.display;
+                        self.XBOX.name = null;
+                        self.XBOX.type = null;
+                        self.XBOX.img = "";
+                        self.xbox_send();
+			self.retry = 1
+		}
+	})
+   },
 
     xbox_send: function() {
 	var self = this
         if ((this.lastgame != this.XBOX.name)) { // envoi les informations seulement si changement de titre
 		// debug mode
-		if (this.XBOX.status && this.config.debug) {
-			console.log("[Xbox] " + this.config.display + " (" + this.config.ip + "): " + this.XBOX.status + (this.XBOX.xbname ? (" -> " + this.XBOX.xbname) : ("")));
-			if (this.XBOX.type == "game" ) console.log("[Xbox] Game: " + this.XBOX.realname + " -idgame: " + this.XBOX.idgame + " -idcover: " + this.XBOX.idcover + " -img: " + this.XBOX.img)
-			else {
-				if (this.XBOX.name != "Unkown") console.log("[Xbox] App: " + this.XBOX.name)
-			}
+		if (this.XBOX.status) {
+			if (this.config.debug) console.log("[Xbox] " + this.config.display + " (" + this.config.ip + "): " + this.XBOX.status);
+			console.log("[Xbox] " + (this.XBOX.type == "Game" ? "Game: " : "App: ") + this.XBOX.name + (this.config.debug ? (" -img: " + this.XBOX.img) : ""))
 		}
-
 		self.sendSocketNotification("RESULT", this.XBOX); // envoi les infos
-		// Console Log !
-		if (this.XBOX.name && this.XBOX.type == "game" && !this.config.debug) console.log("[Xbox] Game: " + (this.XBOX.realname ? this.XBOX.realname : this.XBOX.name))
-		else if (this.XBOX.name && !this.config.debug && this.XBOX.type) console.log("[Xbox] App: " + this.XBOX.name)
 	}
 
 	this.lastgame = this.XBOX.name
-	this.socketNotificationReceived("SCAN"); // Fin du scan ! On Relance le Scan
+	if (this.XBOX.status) this.socketNotificationReceived("UPDATE"); // nouveau scan car la Xbox est en ligne
+	else {
+		if (this.retry == 0) console.log("[Xbox] Connection lost with " + this.config.ip) // connexion perdu ... on redémarre le scan complet
+		this.retry = 1
+		this.xbox_device(); 
+	}
     },
 
-    updateDB: function(payload) { // fresh update of db
-	var self = this;
-    	var dir = path.resolve(__dirname, "db")
-    	var cmd = "cd " + dir + "; cp xbox.db xbox.db.sav ; rm xbox.db ; wget -q https://raw.githubusercontent.com/bugsounet/MMM-HomeStatus/master/xbox.db"
-    	exec(cmd, (e,so,se)=>{
-      		console.log("[Xbox] Fresh Update of the xbox database from MMM-HomeStatus GitHub")
-		self.sendSocketNotification("UPDATED", payload)
-    	})
+    xbox_login: function() {
+	var self = this
+	console.log("[Xbox] Login to Xbox Live ...");
+	var login = false
+	var messsage = {}
+	var loginData = {
+		email: this.config.xboxlivelogin,
+		password: this.config.xboxlivepassword
+	}
+
+
+	request.post({url:'http://localhost:5557/auth/login', formData: loginData }, function optionalCallback(err, httpResponse, body) {
+  		if (err) return console.error('[Xbox] Login error:', err);
+
+		message = JSON.parse(body)
+
+		if (message.message == "Login success") {
+			console.log('[Xbox] Login ' + message.gamertag + ' Success !');
+			self.socketNotificationReceived("SCAN");
+		}
+		if (message.message == "An account is already signed in.. please logout first") {
+			console.log("[Xbox] Login Token Found !")
+			self.socketNotificationReceived("SCAN");
+		}
+	})
     },
 
     xbox_on: function() {
@@ -200,62 +172,50 @@ module.exports = NodeHelper.create({
     },
 
     socketNotificationReceived: function(notification, payload) {
-        if (notification === 'SCAN') {
-	    var self = this;
-	    if (payload) { // first start
+	if (notification === "INIT") {
+		var self = this
 		this.config = payload;
-		this.updateDB(true);
-	    }
+		const somePath = userHome + '/.local/bin/xbox-rest-server'
+		let fileName = path.basename(somePath)
+		let filePath = path.dirname(somePath)
 
-	    if (this.config.debug) console.log("[Xbox] Collecting Xbox informations ...");
-	    this.xbox_status(this.config.ip);
+		console.log("[Xbox] Rest Server Launch...");
+                PythonShell.run(fileName, { scriptPath: filePath }, function (err, data) {
+                        if (err) console.log("[Xbox] Xbox SmartGlass Rest Server " + err)
+		})
+		exec ("pgrep -a python3 | grep xbox-rest-server | awk '{print($1)}'", (err, stdout, stderr)=>{
+			if (err == null) {
+				if (stdout.trim()) {
+					console.log("[Xbox] Xbox SmartGlass Rest Server : Ok -- Pid:",stdout.trim())
+					self.sendSocketNotification("INITIALIZED", true);
+				} else {
+					console.log("[Xbox] Xbox SmartGlass Rest Server : Error !")
+					self.sendSocketNotification("INITIALIZED", false);
+				}
+			} else {
+				console.log("[Xbox] Xbox SmartGlass Rest Server : Check Error !")
+				self.sendSocketNotification("INITIALIZED", false);
+			}
+		})
 
-	    setTimeout(() => { this.xbox_send(); }, 4000);
+	}
+
+        if (notification === 'LOGIN') {
+	    this.xbox_login();
+	}
+
+	if (notification === 'SCAN') {
+	    this.xbox_device();
         }
 
-	if (notification === 'UpdateDB') {
-		this.updateDB(payload);
+	if (notification === 'UPDATE') {
+		var self = this
+		setTimeout(function(){ self.xbox_status() } , 1000)
 	}
-	if (notification === 'UPDATED') console.log(payload)
-	if (notification === 'DB') {
-		this.XBOX_db = payload
 
-
-	}
 	if (notification === 'XBOX_ON') this.xbox_on()
 	if (notification === 'XBOX_OFF') this.xbox_off()
 
     },
-
-/*
-    xbox_writedb: function() {
-	// test recontruction DB : ok to console
-	// Xbox Title Code , MMM-Xbox game/app name , type (game or app), igdb cover link ? , igdb saved cover (cache) ?
-	// humm... integrate igdb link and cover ?
-	// choise of :
-	// 1 -- Make Personnal Database
-	// 2 -- autoupdate DB via github
-
-	// * -> make a node js script to write new db
-	// * -> if i code igdb cover link and cache --> gain of a little delay to information display
-
-	const now = new Date();
-	var test = "Version," + date.format(now, 'YYYYMMDD') + "," + date.format(now, 'HHMM') + "\n"
-	for ( var nb in this.XBOX_db ) {
-		if (nb > 0) {
-			if (this.XBOX_db[nb][0]) {
-				if (this.XBOX_db[nb][0] == "#Games" || this.XBOX_db[nb][0] == "#Apps") test += "\n"
-				test += this.XBOX_db[nb][0]
-			}
-			if (typeof this.XBOX_db[nb][1] != "undefined") test += "," + this.XBOX_db[nb][1]
-			if (typeof this.XBOX_db[nb][2] != "undefined") test += "," + this.XBOX_db[nb][2]
-			if (typeof this.XBOX_db[nb][3] != "undefined") test += "," + this.XBOX_db[nb][3] // covers link ?
-			if (typeof this.XBOX_db[nb][4] != "undefined") test += "," + this.XBOX_db[nb][4] // covers cache ?
-			test += "\n"
-		}
-	}
-	console.log(test)
-    },
-*/
 
 });
