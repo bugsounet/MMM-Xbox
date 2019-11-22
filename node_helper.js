@@ -17,6 +17,12 @@ module.exports = NodeHelper.create({
 		"type": null,
 		"img": ""
 	}
+	this.ACHIEVEMENT = {
+		"name" : "",
+		"score" : "",
+		"progress" : "",
+		"achievement" : ""
+	}
 	this.lastgame = ""
 	this.retry = 0
     },
@@ -26,9 +32,9 @@ module.exports = NodeHelper.create({
 
 	if (this.retry == 0) console.log("[Xbox] Collecting Xbox informations ...");
 
-	request('http://127.0.0.1:5557/device?addr=192.168.0.39', function (error, response, body) {
+	request('http://127.0.0.1:5557/device?addr=' + self.config.ip, function (error, response, body) {
                 if (error) {
-                        return console.log('[Xbox] Device error:', err);
+                        return console.log('[Xbox] Device error:', error);
                 }
                 message = JSON.parse(body)
 		//console.log("device: ", message)
@@ -77,6 +83,7 @@ module.exports = NodeHelper.create({
 			self.XBOX.type = message.console_status.active_titles[0].type;
 			self.XBOX.img = message.console_status.active_titles[0].image;
 			self.xbox_send();
+			if (self.XBOX.type == "Game") self.xbox_achievement();
 			self.retry = 0
 		} else {
 			self.XBOX.status = false;
@@ -86,10 +93,32 @@ module.exports = NodeHelper.create({
                         self.XBOX.type = null;
                         self.XBOX.img = "";
                         self.xbox_send();
+			self.ACHIEVEMENT = {
+                		"name" : "",
+                		"score" : "",
+                		"progress" : "",
+				"achievement" : ""
+        		}
 			self.retry = 1
 		}
 	})
-   },
+    },
+
+    xbox_achievement: function() {
+	var self = this
+	request('http://127.0.0.1:5557/web/titlehistory', function (error, response, body) {
+                if (error) {
+                        return console.log('[Xbox] Connect error:', error);
+                }
+                message = JSON.parse(body)
+		self.ACHIEVEMENT.name = message.titles[0].name
+		self.ACHIEVEMENT.score = message.titles[0].achievement.currentGamerscore + "/" + message.titles[0].achievement.totalGamerscore
+                self.ACHIEVEMENT.progress = message.titles[0].achievement.progressPercentage,
+                self.ACHIEVEMENT.achievement = message.titles[0].achievement.currentAchievements
+		//console.log(self.ACHIEVEMENT)
+		self.sendSocketNotification("ACHIEVEMENT", self.ACHIEVEMENT);
+	})
+    },
 
     xbox_send: function() {
 	var self = this

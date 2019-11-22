@@ -13,9 +13,10 @@
 * Notification New Game to other modules : not tested
 * Hide module when inactive : ok (option)
 * TelegramBot Commands : ok -> need to rewrite with Rest Server
-* Translate Telegram Commands : not yet implented just only French reply
+* Translate Telegram Commands : not yet implented -- just only French reply
 * ~~Auto update Xbox Database from MMM-HomeStatus module : ok (every 4 hours or force by TelegramBot)~~
 * Launch Game by TelegramBot or notification : not yet implented
+* Display Achievements : ok
 
 ## Dev Screenshoot
 ![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshot.jpg)

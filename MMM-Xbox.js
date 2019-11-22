@@ -41,6 +41,7 @@ Module.register("MMM-Xbox", {
 		this.config = this.configAssignment({}, this.defaults, this.config)
 		this.Init = false
 		this.Xbox = {}
+		this.Achievement = {}
 		this.LastState = false
 		this.LastGameApp = ""
 	},
@@ -71,6 +72,12 @@ Module.register("MMM-Xbox", {
 			this.LastGameApp = this.Xbox.name
 			this.updateDom();
 			if (this.Xbox.name) this.resetCounter()
+		}
+		if (notification === "ACHIEVEMENT") {
+			if (payload) {
+				this.Achievement = payload
+				//this.achievement()
+			}
 		}
 		if (notification === "INITIALIZED") {
 			if (payload) setTimeout(() => { this.sendSocketNotification("LOGIN"); } , 10000);
@@ -143,22 +150,57 @@ Module.register("MMM-Xbox", {
     		else dt.textContent = ""
     		device.appendChild(dt)
 
+		var achievement = document.createElement("div")
+		achievement.id = "XBOX_ACHIEVEMENT"
+		if (this.Xbox.type == "Game") {
+			var as = document.createElement("span")
+			as.className = "iconify"
+			as.dataset.icon = "emojione-monotone:letter-g"
+			as.dataset.inline = "false"
+			achievement.appendChild(as)
+			var ast = document.createElement("span")
+			ast.className = "text_score"
+			ast.textContent = "-/-"
+			achievement.appendChild(ast)
+			var aa = document.createElement("span")
+			aa.style.marginLeft = "20px";
+                	aa.className = "iconify"
+                	aa.dataset.icon = "fa-solid:trophy"
+                	aa.dataset.inline = "false"
+			achievement.appendChild(aa)
+			var aat = document.createElement("span")
+                	aat.className = "text_achievement"
+                	aat.textContent = "-"
+                	achievement.appendChild(aat)
+			var ap = document.createElement("span")
+			ap.style.marginLeft = "20px";
+                	ap.className = "iconify"
+                	ap.dataset.icon = "vaadin:book-percent"
+                	ap.dataset.inline = "false"
+                	achievement.appendChild(ap)
+                	var apt = document.createElement("span")
+                	apt.className = "text_progress"
+                	apt.textContent = "-%"
+                	achievement.appendChild(apt)
+		}
+
     		var time = document.createElement("div")
     		time.id = "XBOX_TIME"
 		if (this.Xbox.name) {
-		var ti = document.createElement("span")
-		ti.className = "iconify"
-		ti.dataset.icon = "si-glyph:timer"
-		ti.dataset.inline ="false"
-		time.appendChild(ti)
-		var td = document.createElement("span")
-		td.className = "text"
-		td.textContent = "--:--:--"
-		time.appendChild(td)
+			var ti = document.createElement("span")
+			ti.className = "iconify"
+			ti.dataset.icon = "si-glyph:timer"
+			ti.dataset.inline ="false"
+			time.appendChild(ti)
+			var td = document.createElement("span")
+			td.className = "text"
+			td.textContent = "--:--:--"
+			time.appendChild(td)
 		}
 
     		info.appendChild(title)
     		info.appendChild(device)
+		info.appendChild(achievement)
 		info.appendChild(time)
     		fore.appendChild(info)
 
@@ -173,8 +215,16 @@ Module.register("MMM-Xbox", {
 
         	self.intervalTime = setInterval(function () {
             		self.counterTime += 1000;
+			if (self.Achievement.name == self.Xbox.name && self.Xbox.type == "Game") { // Achievement update
+                                var score = document.querySelector("#XBOX_ACHIEVEMENT .text_score")
+                                score.textContent = self.Achievement.score
+                                var progress = document.querySelector("#XBOX_ACHIEVEMENT .text_progress")
+                                progress.textContent = self.Achievement.progress + "%"
+                                var achievement = document.querySelector("#XBOX_ACHIEVEMENT .text_achievement")
+                                achievement.textContent = self.Achievement.achievement
+                        }
 
-			var time = document.querySelector("#XBOX_TIME .text")
+			var time = document.querySelector("#XBOX_TIME .text") // time uptime
 			time.textContent = new Date(self.counterTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/)[0];
         	}, 1000);
     	},
