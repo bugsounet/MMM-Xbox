@@ -1,22 +1,21 @@
 # MMM-Xbox
 
-## Under development...
+## Development Status...
 
-* ~~Use MMM-HomeStatus xbox.db database : ok~~
 * Use SmartGlass Rest Server : ok
 * Show cover of the current game on Xbox: ok
-* Translation if app : ok (default: English)
-* Multi Translation : nok (only French ... need help)
+* Translation if Application : ok
+* Multi Translation : nok (only English and French ... need help)
 * Show current game (or app) play time : ok
-* Command start and stop Xbox : nok -> need to rewrite with Rest Server
-* Notification Xbox Active / inactive to other modules: ok
-* Notification New Game to other modules : not tested
-* Hide module when inactive : ok (option)
-* TelegramBot Commands : ok -> need to rewrite with Rest Server
-* Translate Telegram Commands : not yet implented -- just only French reply
-* ~~Auto update Xbox Database from MMM-HomeStatus module : ok (every 4 hours or force by TelegramBot)~~
-* Launch Game by TelegramBot or notification : not yet implented
 * Display Achievements : ok
+* Command start and stop Xbox : ok
+* Notification Received or start and stop Xbox : ok
+* Notification Xbox Active / Inactive to other modules: ok
+* Notification New Game to other modules : implented but not tested
+* Hide module when inactive : ok (option)
+* TelegramBot Commands : ok (start & stop xbox)
+* Translate Reply Telegram Commands : not yet implented -- just only French reply
+* Launch Game by TelegramBot or notification : not yet implented
 
 ## Dev Screenshoot
 ![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshot.jpg)
