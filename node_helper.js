@@ -32,8 +32,12 @@ module.exports = NodeHelper.create({
 
 	if (this.retry == 0) console.log("[Xbox] Collecting Xbox informations ...");
 
-	request('http://127.0.0.1:5557/device?addr=' + self.config.ip, function (error, response, body) {
+	request.get('http://127.0.0.1:5557/device?addr=' + self.config.ip, {timeout: 5000}, function (error, response, body) {
                 if (error) {
+			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => {
+					console.log("[Xbox] Timeout... Retry Device")
+					self.xbox_device();
+			} , 2000 )
                         return console.log('[Xbox] Device error:', error);
                 }
                 message = JSON.parse(body)
@@ -48,9 +52,14 @@ module.exports = NodeHelper.create({
 	var self = this;
 
 	if (this.retry == 0) console.log("[Xbox] Connecting to Xbox...");
-	request('http://127.0.0.1:5557/device/' + self.config.liveID + '/connect', function (error, response, body) {
+	request.get('http://127.0.0.1:5557/device/' + self.config.liveID + '/connect', {timeout: 5000}, function (error, response, body) {
 		if (error) {
-                        return console.log('[Xbox] Connect error:', error);
+			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => {
+					console.log("[Xbox] Timeout... Retry Connect")
+					self.retry = 1;
+					self.xbox_device();
+			} , 2000 )
+                        else return console.log('[Xbox] Connect error:', error);
                 }
 		message = JSON.parse(body)
 		//console.log("connect: ", message)
@@ -68,8 +77,13 @@ module.exports = NodeHelper.create({
     xbox_status: function() {
 	var self = this;
 
-	request('http://127.0.0.1:5557/device/' + self.config.liveID + '/console_status', function (error, response, body) {
+	request.get('http://127.0.0.1:5557/device/' + self.config.liveID + '/console_status', {timeout: 5000}, function (error, response, body) {
                 if (error) {
+			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => { 
+					console.log("[Xbox] Timeout... Retry Status")
+					self.retry = 1;
+					self.xbox_device();
+			} , 2000 )
                         return console.log('[Xbox] Connect error:', error);
                 }
                 message = JSON.parse(body)
@@ -106,8 +120,12 @@ module.exports = NodeHelper.create({
 
     xbox_achievement: function() {
 	var self = this
-	request('http://127.0.0.1:5557/web/titlehistory', function (error, response, body) {
+	request.get('http://127.0.0.1:5557/web/titlehistory', {timeout: 5000 }, function (error, response, body) {
                 if (error) {
+			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => { 
+						console.log("[Xbox] Timeout... Retry Achievement")
+						xbox_achievement();
+			} , 2000 )
                         return console.log('[Xbox] Connect error:', error);
                 }
                 message = JSON.parse(body)
@@ -136,7 +154,7 @@ module.exports = NodeHelper.create({
 	else {
 		if (this.retry == 0) console.log("[Xbox] Connection lost with " + this.config.ip) // connexion perdu ... on redémarre le scan complet
 		this.retry = 1
-		this.xbox_device(); 
+		this.xbox_device();
 	}
     },
 
@@ -152,7 +170,13 @@ module.exports = NodeHelper.create({
 
 
 	request.post({url:'http://127.0.0.1:5557/auth/login', formData: loginData }, function optionalCallback(err, httpResponse, body) {
-  		if (err) return console.log('[Xbox] Login error:', err);
+  		if (err) {
+			if (err.errno == "ECONNREFUSED") {
+				console.log("[Xbox] Connexion to REST server Refused ! Let's retry in a few moment...")
+				return setTimeout(() => { self.socketNotificationReceived("LOGIN"); } , 10000)
+			}
+			return console.log('[Xbox] Login error:', err);
+		}
 
 		message = JSON.parse(body)
 
@@ -188,9 +212,11 @@ module.exports = NodeHelper.create({
 		let filePath = path.dirname(RestPath)
 
 		console.log("[Xbox] Rest Server Launch...");
-                PythonShell.run(fileName, { scriptPath: filePath }, function (err, data) {
+
+		PythonShell.run(fileName, { scriptPath: filePath }, function (err, data) {
                         if (err) console.log("[Xbox] Xbox SmartGlass Rest Server " + err)
 		})
+
 		exec ("pgrep -a python3 | grep xbox-rest-server | awk '{print($1)}'", (err, stdout, stderr)=>{
 			if (err == null) {
 				if (stdout.trim()) {

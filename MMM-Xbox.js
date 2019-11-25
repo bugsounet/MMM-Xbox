@@ -7,7 +7,9 @@ Module.register("MMM-Xbox", {
 		ip: "",
 		liveID: "",
 		xboxlivelogin: "",
-		xboxlivepassword: ""
+		xboxlivepassword: "",
+		timetologin: 1000
+
 	},
 
   	configAssignment : function (result) {
@@ -50,7 +52,7 @@ Module.register("MMM-Xbox", {
 
         	if (notification === 'DOM_OBJECTS_CREATED') {
             		//DOM creation complete, let's start the module
-			setTimeout(() => { this.sendSocketNotification("INIT", this.config); } , 10000);
+			this.sendSocketNotification("INIT", this.config);
         	}
 		if (notification === 'XBOX_ON') {
 			this.sendSocketNotification("XBOX_ON");
@@ -76,11 +78,10 @@ Module.register("MMM-Xbox", {
 		if (notification === "ACHIEVEMENT") {
 			if (payload) {
 				this.Achievement = payload
-				//this.achievement()
 			}
 		}
 		if (notification === "INITIALIZED") {
-			if (payload) setTimeout(() => { this.sendSocketNotification("LOGIN"); } , 10000);
+			if (payload) setTimeout(() => { this.sendSocketNotification("LOGIN"); } , this.config.timetologin);
 		}
 	},
 
