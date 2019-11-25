@@ -45,5 +45,5 @@ git clone https://github.com/bugsounet/MMM-Xbox.git
 ```
 
 ## Known Bug:
-* Connexion lost when you force to reboot xbox
+* ~~Connexion lost when you force to reboot xbox~~
 * Check if token is expired to relogin
