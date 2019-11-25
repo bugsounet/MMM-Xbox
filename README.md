@@ -18,7 +18,7 @@
 * Launch Game by TelegramBot or notification : not yet implented
 
 ## Dev Screenshoot
-![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshot.jpg)
+![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshoot.jpg)
 
 ## Installation (for testing)
 ```
