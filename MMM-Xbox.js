@@ -73,7 +73,7 @@ Module.register("MMM-Xbox", {
 			this.LastState = this.Xbox.status
 			this.LastGameApp = this.Xbox.name
 			this.updateDom();
-			if (this.Xbox.name) this.resetCounter()
+			if (this.Xbox.status) this.resetCounter()
 		}
 		if (notification === "ACHIEVEMENT") {
 			if (payload) {
@@ -224,9 +224,10 @@ Module.register("MMM-Xbox", {
                                 var achievement = document.querySelector("#XBOX_ACHIEVEMENT .text_achievement")
                                 achievement.textContent = self.Achievement.achievement
                         }
-
-			var time = document.querySelector("#XBOX_TIME .text") // time uptime
-			time.textContent = new Date(self.counterTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/)[0];
+			if (self.Xbox.status) {
+				var time = document.querySelector("#XBOX_TIME .text") // time uptime
+				time.textContent = new Date(self.counterTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/)[0];
+			}
         	}, 1000);
     	},
 

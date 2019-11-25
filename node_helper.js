@@ -13,8 +13,8 @@ module.exports = NodeHelper.create({
 		"ip" : "",
 		"display": "",
 		"status": false,
-		"name" : null,
-		"type": null,
+		"name" : "",
+		"type": "",
 		"img": ""
 	}
 	this.ACHIEVEMENT = {
@@ -103,8 +103,8 @@ module.exports = NodeHelper.create({
 			self.XBOX.status = false;
                         self.XBOX.ip = self.config.ip;
                         self.XBOX.display = self.config.display;
-                        self.XBOX.name = null;
-                        self.XBOX.type = null;
+                        self.XBOX.name = "";
+                        self.XBOX.type = "";
                         self.XBOX.img = "";
                         self.xbox_send();
 			self.ACHIEVEMENT = {
