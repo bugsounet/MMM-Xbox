@@ -35,7 +35,7 @@ module.exports = NodeHelper.create({
 	request.get('http://127.0.0.1:5557/device?addr=' + self.config.ip, {timeout: 5000}, function (error, response, body) {
                 if (error) {
 			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => {
-					console.log("[Xbox] Timeout... Retry Device")
+					if (self.config.debug) console.log("[Xbox] Timeout... Retry Device")
 					self.xbox_device();
 			} , 2000 )
                         return console.log('[Xbox] Device error:', error);
@@ -55,7 +55,7 @@ module.exports = NodeHelper.create({
 	request.get('http://127.0.0.1:5557/device/' + self.config.liveID + '/connect', {timeout: 5000}, function (error, response, body) {
 		if (error) {
 			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => {
-					console.log("[Xbox] Timeout... Retry Connect")
+					if (self.config.debug) console.log("[Xbox] Timeout... Retry Connect")
 					self.retry = 1;
 					self.xbox_device();
 			} , 2000 )
@@ -80,7 +80,7 @@ module.exports = NodeHelper.create({
 	request.get('http://127.0.0.1:5557/device/' + self.config.liveID + '/console_status', {timeout: 5000}, function (error, response, body) {
                 if (error) {
 			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => { 
-					console.log("[Xbox] Timeout... Retry Status")
+					if (self.config.debug) console.log("[Xbox] Timeout... Retry Status")
 					self.retry = 1;
 					self.xbox_device();
 			} , 2000 )
@@ -88,7 +88,7 @@ module.exports = NodeHelper.create({
                 }
                 message = JSON.parse(body)
 		//console.log("status: ", message)
-		if (message.console_status.active_titles[0] && message.success == true) {
+		if (message.console_status && message.console_status.active_titles[0] && message.success == true) {
 			if (self.retry == 1) console.log("[Xbox] Reconnected to " + self.config.ip + " !")
 			self.XBOX.status = true;
 			self.XBOX.ip = self.config.ip;
@@ -123,8 +123,8 @@ module.exports = NodeHelper.create({
 	request.get('http://127.0.0.1:5557/web/titlehistory', {timeout: 5000 }, function (error, response, body) {
                 if (error) {
 			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => { 
-						console.log("[Xbox] Timeout... Retry Achievement")
-						xbox_achievement();
+						if (self.config.debug) console.log("[Xbox] Timeout... Retry Achievement")
+						self.xbox_achievement();
 			} , 2000 )
                         return console.log('[Xbox] Connect error:', error);
                 }
@@ -194,13 +194,39 @@ module.exports = NodeHelper.create({
     xbox_on: function() {
 	var self = this
 	console.log("[Xbox] Request to start the xbox (" + self.config.ip + ")")
-	// to do :)
+
+	request.get('http://127.0.0.1:5557/device/' + self.config.liveID + '/poweron?addr=' + self.config.ip, {timeout: 10000}, function (error, response, body) {
+        	if (error) {
+        		if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => { 
+                			if (self.config.debug) console.log("[Xbox] Timeout... Retry poweron")
+                                	self.xbox_on();
+                	} , 2000 )
+                	return console.log("[Xbox] Booting console failed: ", error)
+		}
+        	message = JSON.parse(body)
+
+        	if (message.success == true) console.log("[Xbox] Console booted: " + self.config.ip)
+		else console.log("[Xbox] Booting console failed: ", self.config.ip)
+	})
     },
 
     xbox_off: function() {
         var self = this
         console.log("[Xbox] Request to shutdown the xbox (" + self.config.ip + ")")
-	// to do !
+
+        request.get('http://127.0.0.1:5557/device/' + self.config.liveID + '/poweroff?addr=' + self.config.ip, {timeout: 10000}, function (error, response, body) {
+                if (error) {
+                        if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => { 
+                                        if (self.config.debug) console.log("[Xbox] Timeout... Retry poweroff")
+                                        self.xbox_off();
+                        } , 2000 )
+                        return console.log("[Xbox] Shutdown console failed: ", error)
+                }
+                message = JSON.parse(body)
+
+                if (message.success == true) console.log("[Xbox] Shutdown succes! " + self.config.ip)
+                else console.log("[Xbox] Shutdown console failed: ", self.config.ip)
+        })
     },
 
     socketNotificationReceived: function(notification, payload) {
