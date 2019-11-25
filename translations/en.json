@@ -7,5 +7,6 @@
 	"TBTurnon" : "Turn on Xbox.",
 	"TBTurnoff": "Turn off Xbox.",
 	"TBLaunch": "Launch Game or Application",
-	"RTBTurn": "Command has been sent !"
+	"RTBTurn": "Command has been sent !",
+	"NOTCONNECTED" : "Not connected"
 }

@@ -87,10 +87,3 @@
   border-radius:10px;
 }
 
-#XBOX.noGame #XBOX_FOREGROUND > * {
-  display:none;
-}
-
-#XBOX.noGame #XBOX_FOREGROUND #XBOX_COVER {
-  display:block;
-}

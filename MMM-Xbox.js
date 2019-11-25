@@ -41,7 +41,7 @@ Module.register("MMM-Xbox", {
 
 	start: function () {
 		this.config = this.configAssignment({}, this.defaults, this.config)
-		this.Init = false
+		this.Init = true
 		this.Xbox = {}
 		this.Achievement = {}
 		this.LastState = false
@@ -83,18 +83,18 @@ Module.register("MMM-Xbox", {
 		if (notification === "INITIALIZED") {
 			if (payload) setTimeout(() => { this.sendSocketNotification("LOGIN"); } , this.config.timetologin);
 		}
+		if (notification === "LOGGED") {
+                        this.Init=false
+			this.updateDom();
+		}
 	},
 
   	getDom: function(){
     		var m = document.createElement("div")
     		m.id = "XBOX"
-		if (this.Xbox.status) {
-			m.classList.remove("noGame")
-			m.classList.remove("inactive")
-		} else {
-			m.classList.add("noGame")
-			if (this.config.autohide) m.classList.add("inactive")
-		}
+		if (this.Xbox.status) m.classList.remove("inactive")
+		else if (this.config.autohide) m.classList.add("inactive")
+
 
     		var back = document.createElement("div")
     		back.id = "XBOX_BACKGROUND"
@@ -132,23 +132,23 @@ Module.register("MMM-Xbox", {
 
     		var tt = document.createElement("span")
     		tt.className = "text"
-		if (this.Xbox.name) {
+		if (this.Init) tt.innerHTML = this.translate("LOADING");
+		if (!this.Init && !this.Xbox.status) tt.innerHTML = this.translate("NOTCONNECTED");
+		else if (this.Xbox.name) {
 			tt.innerHTML = this.translate(this.Xbox.name)
 		}
-		else tt.innerHTML = this.translate("LOADING");
     		title.appendChild(tt)
 
     		var device = document.createElement("div")
     		device.id = "XBOX_DEVICE"
     		var di = document.createElement("span")
-    		di.className = "iconify"
-    		di.dataset.icon = "ic-baseline-devices"
+		di.className = "iconify"
+    		di.dataset.icon = "el:screen"  //"ic-baseline-devices"
     		di.dataset.inline = "false"
     		device.appendChild(di)
     		var dt = document.createElement("span")
     		dt.className = "text"
-		if (this.Xbox.display) dt.textContent = this.Xbox.display
-    		else dt.textContent = ""
+		dt.textContent = this.config.display
     		device.appendChild(dt)
 
 		var achievement = document.createElement("div")

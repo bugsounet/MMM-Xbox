@@ -120,7 +120,7 @@ module.exports = NodeHelper.create({
 
     xbox_achievement: function() {
 	var self = this
-	request.get('http://127.0.0.1:5557/web/titlehistory', {timeout: 5000 }, function (error, response, body) {
+	request.get('http://127.0.0.1:5557/web/titlehistory', {timeout: 10000 }, function (error, response, body) {
                 if (error) {
 			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => { 
 						if (self.config.debug) console.log("[Xbox] Timeout... Retry Achievement")
@@ -129,12 +129,14 @@ module.exports = NodeHelper.create({
                         return console.log('[Xbox] Connect error:', error);
                 }
                 message = JSON.parse(body)
-		self.ACHIEVEMENT.name = message.titles[0].name
-		self.ACHIEVEMENT.score = message.titles[0].achievement.currentGamerscore + "/" + message.titles[0].achievement.totalGamerscore
-                self.ACHIEVEMENT.progress = message.titles[0].achievement.progressPercentage,
-                self.ACHIEVEMENT.achievement = message.titles[0].achievement.currentAchievements
-		//console.log(self.ACHIEVEMENT)
-		self.sendSocketNotification("ACHIEVEMENT", self.ACHIEVEMENT);
+		if (message.titles[0]) {
+			self.ACHIEVEMENT.name = message.titles[0].name
+			self.ACHIEVEMENT.score = message.titles[0].achievement.currentGamerscore + "/" + message.titles[0].achievement.totalGamerscore
+                	self.ACHIEVEMENT.progress = message.titles[0].achievement.progressPercentage,
+                	self.ACHIEVEMENT.achievement = message.titles[0].achievement.currentAchievements
+			//console.log(self.ACHIEVEMENT)
+			self.sendSocketNotification("ACHIEVEMENT", self.ACHIEVEMENT);
+		}
 	})
     },
 
@@ -168,14 +170,13 @@ module.exports = NodeHelper.create({
 		password: this.config.xboxlivepassword
 	}
 
-
 	request.post({url:'http://127.0.0.1:5557/auth/login', formData: loginData }, function optionalCallback(err, httpResponse, body) {
   		if (err) {
 			if (err.errno == "ECONNREFUSED") {
 				console.log("[Xbox] Connexion to REST server Refused ! Let's retry in a few moment...")
 				return setTimeout(() => { self.socketNotificationReceived("LOGIN"); } , 10000)
 			}
-			return console.log('[Xbox] Login error:', err);
+			return console.log("[Xbox] Login error:", err);
 		}
 
 		message = JSON.parse(body)
@@ -183,10 +184,12 @@ module.exports = NodeHelper.create({
 		if (message.message == "Login success") {
 			console.log('[Xbox] Login ' + message.gamertag + ' Success !');
 			self.socketNotificationReceived("SCAN");
+			self.sendSocketNotification("LOGGED")
 		}
 		if (message.message == "An account is already signed in.. please logout first") {
 			console.log("[Xbox] Login Token Found !")
 			self.socketNotificationReceived("SCAN");
+			self.sendSocketNotification("LOGGED")
 		}
 	})
     },
@@ -229,34 +232,37 @@ module.exports = NodeHelper.create({
         })
     },
 
-    socketNotificationReceived: function(notification, payload) {
-	if (notification === "INIT") {
-		var self = this
-		this.config = payload;
-		const RestPath = userHome + '/.local/bin/xbox-rest-server'
-		let fileName = path.basename(RestPath)
-		let filePath = path.dirname(RestPath)
+    rest_server: function() {
+	var self = this
+	const RestPath = userHome + '/.local/bin/xbox-rest-server'
+        let fileName = path.basename(RestPath)
+        let filePath = path.dirname(RestPath)
 
-		console.log("[Xbox] Rest Server Launch...");
+	console.log("[Xbox] Rest Server Launch...");
 
-		PythonShell.run(fileName, { scriptPath: filePath }, function (err, data) {
-                        if (err) console.log("[Xbox] Xbox SmartGlass Rest Server " + err)
-		})
-
-		exec ("pgrep -a python3 | grep xbox-rest-server | awk '{print($1)}'", (err, stdout, stderr)=>{
-			if (err == null) {
-				if (stdout.trim()) {
-					console.log("[Xbox] Xbox SmartGlass Rest Server : Ok -- Pid:",stdout.trim())
-					self.sendSocketNotification("INITIALIZED", true);
-				} else {
-					console.log("[Xbox] Xbox SmartGlass Rest Server : Error !")
-					self.sendSocketNotification("INITIALIZED", false);
-				}
+        PythonShell.run(fileName, { scriptPath: filePath }, function (err, data) {
+        	if (err) console.log("[Xbox] Xbox SmartGlass Rest Server error: " + err)
+	})
+	exec ("pgrep -a python3 | grep xbox-rest-server | awk '{print($1)}'", (err, stdout, stderr)=>{
+        	if (err == null) {
+                	if (stdout.trim()) {
+				console.log("[Xbox] Xbox SmartGlass Rest Server : Ok -- Pid:",stdout.trim())
+				self.sendSocketNotification("INITIALIZED", true);
 			} else {
-				console.log("[Xbox] Xbox SmartGlass Rest Server : Check Error !")
+				console.log("[Xbox] Xbox SmartGlass Rest Server : Error !")
 				self.sendSocketNotification("INITIALIZED", false);
 			}
-		})
+		} else {
+			console.log("[Xbox] Xbox SmartGlass Rest Server : Check Error !")
+			self.sendSocketNotification("INITIALIZED", false);
+		}
+	})
+    },
+
+    socketNotificationReceived: function(notification, payload) {
+	if (notification === "INIT") {
+		this.config = payload;
+		this.rest_server();
 
 	}
 
