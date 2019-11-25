@@ -5,7 +5,7 @@
 * Use SmartGlass Rest Server : ok
 * Show cover of the current game on Xbox: ok
 * Translation if Application : ok
-* Multi Translation : nok (only English and French ... need help)
+* Multi Translation : ok (only English and French ... need help)
 * Show current game (or app) play time : ok
 * Display Achievements : ok
 * Command start and stop Xbox : ok
