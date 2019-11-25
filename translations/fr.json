@@ -3,5 +3,9 @@
 	"Xbox Avatar Editor" : "Editeur d'avatar Xbox",
 	"Xbox Accessories" : "Accessoires Xbox",
 	"Settings" : "Paramètres",
-	"Xbox Assist" : "Assistant Xbox"
+	"Xbox Assist" : "Assistant Xbox",
+	"TBTurnon" : "Allume la Xbox.",
+	"TBTurnoff": "Eteins la Xbox.",
+	"TBLaunch": "Lance un jeu ou une application.",
+	"RTBTurn": "La commande a été envoyée."
 }

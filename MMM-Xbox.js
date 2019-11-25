@@ -245,6 +245,7 @@ Module.register("MMM-Xbox", {
 	getTranslations: function() {
     		return {
       			fr: "translations/fr.json",
+			en: "translations/en.json"
     		}
   	},
 
@@ -254,16 +255,16 @@ Module.register("MMM-Xbox", {
     		return [
       			{	command: "turnon",
 				callback: "telegramCommand",
-                                description: "Allume la Xbox."
+				description: this.translate("TBTurnon")
 			},
 			{       command: "turnoff",
                                 callback: "telegramCommand",
-                                description: "Eteins la Xbox."
+				description: this.translate("TBTurnoff")
                         },
 			/*
 			{       command: "launch",
                                 callback: "telegramCommand",
-                                description: "Lance un jeu ou une application."
+                                description: this.translate("TBLaunch")
                         }
 			*/
 
@@ -272,11 +273,11 @@ Module.register("MMM-Xbox", {
 
   	telegramCommand: function(command, handler) {
 		if (command == "turnon") {
-                        handler.reply("TEXT", "La commande a été envoyé.")
+                        handler.reply("TEXT", this.translate("RTBTurn"))
                         this.notificationReceived("XBOX_ON", handler.args, "MMM-TelegramBot")
 		}
 		if (command == "turnoff") {
-                        handler.reply("TEXT", "La commande a été envoyé.")
+                        handler.reply("TEXT", this.translate("RTBTurn"))
                         this.notificationReceived("XBOX_OFF", handler.args, "MMM-TelegramBot")
                 }
 		/*
