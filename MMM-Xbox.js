@@ -68,7 +68,7 @@ Module.register("MMM-Xbox", {
 			this.Xbox = payload;
 
 			if (this.LastState != this.Xbox.status) this.sendNotification(this.Xbox.status ? "XBOX_ACTIVE" : "XBOX_INACTIVE")
-			if (this.Xbox.name && this.LastGameApp != this.Xbox.name) this.sendNotification("XBOX_NAME", this.Xbox.name)
+			if (this.Xbox.name && this.LastGameApp != this.Xbox.name) this.sendNotification("XBOX_NAME", this.translate(this.Xbox.name))
 
 			this.LastState = this.Xbox.status
 			this.LastGameApp = this.Xbox.name
