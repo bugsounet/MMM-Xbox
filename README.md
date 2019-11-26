@@ -1,5 +1,7 @@
 # MMM-Xbox
 
+The Xbox SmartGlass For Magic Mirror
+
 ## Development Status...
 
 * Use SmartGlass Rest Server : ok
@@ -18,7 +20,7 @@
 * Launch Game by TelegramBot or notification : not yet implented
 
 ## Dev Screenshoot
-![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshot.jpg)
+![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshoot.jpg)
 
 ## Installation (for testing)
 ```
@@ -46,3 +48,12 @@ git clone https://github.com/bugsounet/MMM-Xbox.git
 ## Known Bug:
 * ~~Connexion lost when you force to reboot xbox~~
 * Check if token is expired to relogin
+
+## Notification Sent:
+* XBOX_ACTIVE : the console is on-line
+* XBOX_INACTIVE : the console is off-line
+* XBOX_NAME : Current name Game / Application
+
+## Notification Received:
+* XBOX_ON : turn on the console
+* XBOX_OFF : turn off the console
