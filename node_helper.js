@@ -34,7 +34,7 @@ module.exports = NodeHelper.create({
 	var self = this;
 	var deviceStatus = { current_app: false, connection_status: false };
 	sgClient.connect(self.config.ip).then(function() {
-		console.log("[Xbox] Dectected: Xbox On !");
+
 		sgClient.on('_on_console_status', function(message, xbox, remote, smartglass){
 			deviceStatus.connection_status = true
 			if(message.packet_decoded.protected_payload.apps[0] != undefined){
@@ -46,11 +46,12 @@ module.exports = NodeHelper.create({
 
 		setTimeout(() => {
 			if (self.xbox_connected) {
+				console.log("[Xbox] Dectected: Xbox On !");
 				self.XBOX.status = true
 				self.sendSocketNotification("RESULT", self.XBOX); // envoi les infos
 				self.rest_server_start();
-			}
-		} , 4000 )
+			} else 	setTimeout(() => { self.xbox_check() } , 10000 )
+		} , 2000 )
 	}, function(error){
 		if (self.xbox_connected) console.log("[Xbox] Dectected: Xbox Off");
 		if (self.xbox_pid > 0) {
