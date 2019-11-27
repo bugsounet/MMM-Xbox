@@ -72,8 +72,10 @@ Module.register("MMM-Xbox", {
 
 			this.LastState = this.Xbox.status
 			this.LastGameApp = this.Xbox.name
+			if (this.Xbox.name != "") this.Init=false
 			this.updateDom();
 			if (this.Xbox.status) this.resetCounter()
+			else this.Init = true
 		}
 		if (notification === "ACHIEVEMENT") {
 			if (payload) {
@@ -84,7 +86,7 @@ Module.register("MMM-Xbox", {
 			if (payload) setTimeout(() => { this.sendSocketNotification("LOGIN"); } , this.config.timetologin);
 		}
 		if (notification === "LOGGED") {
-                        this.Init=false
+                        //this.Init=false
 			this.updateDom();
 		}
 	},
@@ -132,8 +134,8 @@ Module.register("MMM-Xbox", {
 
     		var tt = document.createElement("span")
     		tt.className = "text"
-		if (this.Init) tt.innerHTML = this.translate("LOADING");
-		if (!this.Init && !this.Xbox.status) tt.innerHTML = this.translate("NOTCONNECTED");
+		if (this.Init && this.Xbox.status) tt.innerHTML = this.translate("LOADING");
+		if (!this.Xbox.status || (!this.Init && !this.Xbox.status)) tt.innerHTML = this.translate("NOTCONNECTED");
 		else if (this.Xbox.name) {
 			tt.innerHTML = this.translate(this.Xbox.name)
 		}

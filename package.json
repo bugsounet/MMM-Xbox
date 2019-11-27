@@ -1,6 +1,6 @@
 {
   "name": "MMM-Xbox",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "Xbox Module For MagicMirror.",
   "main": "MMM-Xbox.js",
   "keywords": [
@@ -21,6 +21,7 @@
   "dependencies": {
     "python-shell": "^1.0.8",
     "request": "^2.88.0",
-    "user-home": "^2.0.0"
+    "user-home": "^2.0.0",
+    "xbox-smartglass-core-node": "^0.6.1"
   }
 }

@@ -57,3 +57,7 @@ git clone https://github.com/bugsounet/MMM-Xbox.git
 ## Notification Received:
 * XBOX_ON : turn on the console
 * XBOX_OFF : turn off the console
+
+## Change Log
+* 2019/11/26: Initial Public Beta
+* 2019/11/27: Use Xbox Smartglass Node for check xbox power status, Rest server only when xbox power on 

@@ -4,6 +4,7 @@ var NodeHelper = require('node_helper');
 var exec = require('child_process').exec
 var {PythonShell} = require('python-shell');
 const userHome = require('user-home');
+var Smartglass = require('xbox-smartglass-core-node');
 
 module.exports = NodeHelper.create({
 
@@ -24,13 +25,47 @@ module.exports = NodeHelper.create({
 		"achievement" : ""
 	}
 	this.lastgame = ""
-	this.retry = 0
+	this.xbox_pid = 0
+	this.xbox_connected = false
+    },
+
+    xbox_check: function () {
+	var sgClient = Smartglass()
+	var self = this;
+	var deviceStatus = { current_app: false, connection_status: false };
+	sgClient.connect(self.config.ip).then(function() {
+		console.log("[Xbox] Dectected: Xbox On !");
+		sgClient.on('_on_console_status', function(message, xbox, remote, smartglass){
+			deviceStatus.connection_status = true
+			if(message.packet_decoded.protected_payload.apps[0] != undefined){
+				if(deviceStatus.current_app != message.packet_decoded.protected_payload.apps[0].aum_id){
+					self.xbox_connected = true
+				}
+			} else self.xbox_connected = false
+		}.bind(deviceStatus));
+
+		setTimeout(() => {
+			if (self.xbox_connected) {
+				self.XBOX.status = true
+				self.sendSocketNotification("RESULT", self.XBOX); // envoi les infos
+				self.rest_server_start();
+			}
+		} , 4000 )
+	}, function(error){
+		if (self.xbox_connected) console.log("[Xbox] Dectected: Xbox Off");
+		if (self.xbox_pid > 0) {
+			console.log("[Xbox] Force Shutdown Xbox SmartGlass Rest Server Pid: " + self.xbox_pid)
+			self.rest_server_stop();
+		}
+		self.xbox_connected = false
+		setTimeout(() => { self.xbox_check() } , 10000 )
+    	});
     },
 
     xbox_device: function () {
 	var self = this;
 
-	if (this.retry == 0) console.log("[Xbox] Collecting Xbox informations ...");
+	console.log("[Xbox] Collecting Xbox informations ...");
 
 	request.get('http://127.0.0.1:5557/device?addr=' + self.config.ip, {timeout: 5000}, function (error, response, body) {
                 if (error) {
@@ -51,12 +86,11 @@ module.exports = NodeHelper.create({
     xbox_connect: function () {
 	var self = this;
 
-	if (this.retry == 0) console.log("[Xbox] Connecting to Xbox...");
+	console.log("[Xbox] Connecting to Xbox...");
 	request.get('http://127.0.0.1:5557/device/' + self.config.liveID + '/connect', {timeout: 5000}, function (error, response, body) {
 		if (error) {
 			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => {
 					if (self.config.debug) console.log("[Xbox] Timeout... Retry Connect")
-					self.retry = 1;
 					self.xbox_device();
 			} , 2000 )
                         else return console.log('[Xbox] Connect error:', error);
@@ -64,11 +98,10 @@ module.exports = NodeHelper.create({
 		message = JSON.parse(body)
 		//console.log("connect: ", message)
 		if (message.success == true) {
-			if (self.retry == 0) console.log("[Xbox] Connected to " + self.config.ip + " !")
+			console.log("[Xbox] Connected to " + self.config.ip + " !")
 			self.xbox_status();
 		}
 		else setTimeout(() => {
-			self.retry = 1
 			self.xbox_device();
 		} , 2000)
 	})
@@ -81,7 +114,6 @@ module.exports = NodeHelper.create({
                 if (error) {
 			if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => { 
 					if (self.config.debug) console.log("[Xbox] Timeout... Retry Status")
-					self.retry = 1;
 					self.xbox_device();
 			} , 2000 )
                         return console.log('[Xbox] Connect error:', error);
@@ -89,7 +121,6 @@ module.exports = NodeHelper.create({
                 message = JSON.parse(body)
 		//console.log("status: ", message)
 		if (message.console_status && message.console_status.active_titles[0] && message.success == true) {
-			if (self.retry == 1) console.log("[Xbox] Reconnected to " + self.config.ip + " !")
 			self.XBOX.status = true;
 			self.XBOX.ip = self.config.ip;
 			self.XBOX.display = self.config.display;
@@ -98,7 +129,6 @@ module.exports = NodeHelper.create({
 			self.XBOX.img = message.console_status.active_titles[0].image;
 			self.xbox_send();
 			if (self.XBOX.type == "Game") self.xbox_achievement();
-			self.retry = 0
 		} else {
 			self.XBOX.status = false;
                         self.XBOX.ip = self.config.ip;
@@ -113,7 +143,6 @@ module.exports = NodeHelper.create({
                 		"progress" : "",
 				"achievement" : ""
         		}
-			self.retry = 1
 		}
 	})
     },
@@ -154,9 +183,12 @@ module.exports = NodeHelper.create({
 	this.lastgame = this.XBOX.name
 	if (this.XBOX.status) this.socketNotificationReceived("UPDATE"); // nouveau scan car la Xbox est en ligne
 	else {
-		if (this.retry == 0) console.log("[Xbox] Connection lost with " + this.config.ip) // connexion perdu ... on redémarre le scan complet
-		this.retry = 1
-		this.xbox_device();
+		console.log("[Xbox] Connection lost with " + this.config.ip) // connexion perdu ... on redémarre le scan complet
+		this.xbox_connected = false
+		self.rest_server_stop();
+		setTimeout(() => {
+			console.log("[Xbox] Waiting for connection...")
+			this.xbox_check(); } , 10000 )
 	}
     },
 
@@ -198,41 +230,49 @@ module.exports = NodeHelper.create({
 	var self = this
 	console.log("[Xbox] Request to start the xbox (" + self.config.ip + ")")
 
-	request.get('http://127.0.0.1:5557/device/' + self.config.liveID + '/poweron?addr=' + self.config.ip, {timeout: 10000}, function (error, response, body) {
-        	if (error) {
-        		if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => { 
-                			if (self.config.debug) console.log("[Xbox] Timeout... Retry poweron")
-                                	self.xbox_on();
-                	} , 2000 )
-                	return console.log("[Xbox] Booting console failed: ", error)
-		}
-        	message = JSON.parse(body)
-
-        	if (message.success == true) console.log("[Xbox] Console booted: " + self.config.ip)
-		else console.log("[Xbox] Booting console failed: ", self.config.ip)
-	})
+	Smartglass().powerOn({
+		live_id : self.config.liveID,
+		tries: 5,
+		ip : self.config.ip
+	}).then(function (res) {
+		console.log("[Xbox] Console booted !")
+	}, function(error) {
+		console.log("[Xbox] Booting console failed: ", error)
+	});
     },
 
     xbox_off: function() {
         var self = this
+	var sgClient = Smartglass()
+
         console.log("[Xbox] Request to shutdown the xbox (" + self.config.ip + ")")
-
-        request.get('http://127.0.0.1:5557/device/' + self.config.liveID + '/poweroff?addr=' + self.config.ip, {timeout: 10000}, function (error, response, body) {
-                if (error) {
-                        if (error.code == "ESOCKETTIMEDOUT") return setTimeout(() => { 
-                                        if (self.config.debug) console.log("[Xbox] Timeout... Retry poweroff")
-                                        self.xbox_off();
-                        } , 2000 )
-                        return console.log("[Xbox] Shutdown console failed: ", error)
-                }
-                message = JSON.parse(body)
-
-                if (message.success == true) console.log("[Xbox] Shutdown succes! " + self.config.ip)
-                else console.log("[Xbox] Shutdown console failed: ", self.config.ip)
-        })
+        sgClient.connect(self.config.ip).then(function () {
+                setTimeout(function(){
+			sgClient.powerOff().then(function(status){
+				console.log("[Xbox] Shutdown succes !")
+        		}, function(error) {
+                		console.log("[Xbox] Shutdown error: ", error)
+			})
+		}.bind(sgClient),1000)
+	}, function(error){
+		console.log("[Xbox] Shutdown error: ", error)
+        });
     },
 
-    rest_server: function() {
+    rest_server_stop: function() {
+	var self = this
+	exec ("kill -9 " + this.xbox_pid, (err, stdout, stderr)=>{
+                if (err == null) {
+                        console.log("[Xbox] Shutdown Xbox SmartGlass Rest Server: Ok")
+                        self.xbox_pid = 0
+			self.xbox_connected = false
+		} else {
+			console.log("[Xbox] Shutdown Xbox SmartGlass Rest Server: Error -- " + err)
+		}
+	})
+    },
+
+    rest_server_start: function() {
 	var self = this
 	const RestPath = userHome + '/.local/bin/xbox-rest-server'
         let fileName = path.basename(RestPath)
@@ -241,12 +281,13 @@ module.exports = NodeHelper.create({
 	console.log("[Xbox] Rest Server Launch...");
 
         PythonShell.run(fileName, { scriptPath: filePath }, function (err, data) {
-        	if (err) console.log("[Xbox] Xbox SmartGlass Rest Server error: " + err)
+        	if (err) return console.log("[Xbox] Xbox SmartGlass Rest Server error: " + err)
 	})
 	exec ("pgrep -a python3 | grep xbox-rest-server | awk '{print($1)}'", (err, stdout, stderr)=>{
         	if (err == null) {
                 	if (stdout.trim()) {
 				console.log("[Xbox] Xbox SmartGlass Rest Server : Ok -- Pid:",stdout.trim())
+				self.xbox_pid = stdout.trim()
 				self.sendSocketNotification("INITIALIZED", true);
 			} else {
 				console.log("[Xbox] Xbox SmartGlass Rest Server : Error !")
@@ -262,8 +303,7 @@ module.exports = NodeHelper.create({
     socketNotificationReceived: function(notification, payload) {
 	if (notification === "INIT") {
 		this.config = payload;
-		this.rest_server();
-
+		this.xbox_check()
 	}
 
         if (notification === 'LOGIN') {
