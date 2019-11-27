@@ -226,7 +226,7 @@ Module.register("MMM-Xbox", {
                                 var achievement = document.querySelector("#XBOX_ACHIEVEMENT .text_achievement")
                                 achievement.textContent = self.Achievement.achievement
                         }
-			if (self.Xbox.status) {
+			if (self.Xbox.status && !self.Init) {
 				var time = document.querySelector("#XBOX_TIME .text") // time uptime
 				time.textContent = new Date(self.counterTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/)[0];
 			}
