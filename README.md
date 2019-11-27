@@ -26,6 +26,7 @@ The Xbox SmartGlass For Magic Mirror
 ```
 cd ~/Magicmirror/modules
 git clone https://github.com/bugsounet/MMM-Xbox.git
+cd MMM-Xbox
 ./install.sh
 ```
 
