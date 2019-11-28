@@ -1,14 +1,13 @@
 Module.register("MMM-Xbox", {
 
 	defaults: {
+		mini: false,
 		autohide: false,
 		debug: false,
-		display: "",
 		ip: "",
-		liveID: "",
 		xboxlivelogin: "",
 		xboxlivepassword: "",
-		timetologin: 1000
+		timetologin: 3000
 
 	},
 
@@ -54,12 +53,8 @@ Module.register("MMM-Xbox", {
             		//DOM creation complete, let's start the module
 			this.sendSocketNotification("INIT", this.config);
         	}
-		if (notification === 'XBOX_ON') {
-			this.sendSocketNotification("XBOX_ON");
-		}
-		if (notification === 'XBOX_OFF') {
-                        this.sendSocketNotification("XBOX_OFF");
-                }
+		if (notification === 'XBOX_ON') this.sendSocketNotification("XBOX_ON");
+		if (notification === 'XBOX_OFF') this.sendSocketNotification("XBOX_OFF");
 	},
 
 	socketNotificationReceived: function (notification, payload) {
@@ -78,17 +73,14 @@ Module.register("MMM-Xbox", {
 			else this.Init = true
 		}
 		if (notification === "ACHIEVEMENT") {
-			if (payload) {
-				this.Achievement = payload
-			}
+			if (payload) this.Achievement = payload
 		}
 		if (notification === "INITIALIZED") {
-			if (payload) setTimeout(() => { this.sendSocketNotification("LOGIN"); } , this.config.timetologin);
+			if (payload) {
+				setTimeout(() => { this.sendSocketNotification("LOGIN"); } , this.config.timetologin);
+			}
 		}
-		if (notification === "LOGGED") {
-                        //this.Init=false
-			this.updateDom();
-		}
+		if (notification === "LOGGED") this.updateDom();
 	},
 
   	getDom: function(){
@@ -97,6 +89,7 @@ Module.register("MMM-Xbox", {
 		if (this.Xbox.status) m.classList.remove("inactive")
 		else if (this.config.autohide) m.classList.add("inactive")
 
+		if (this.config.mini) m.classList.add("mini")
 
     		var back = document.createElement("div")
     		back.id = "XBOX_BACKGROUND"
@@ -145,12 +138,12 @@ Module.register("MMM-Xbox", {
     		device.id = "XBOX_DEVICE"
     		var di = document.createElement("span")
 		di.className = "iconify"
-    		di.dataset.icon = "el:screen"  //"ic-baseline-devices"
+    		if (this.Xbox.display) di.dataset.icon = "el:screen"
     		di.dataset.inline = "false"
     		device.appendChild(di)
     		var dt = document.createElement("span")
     		dt.className = "text"
-		dt.textContent = this.config.display
+		dt.textContent = this.Xbox.display ? this.Xbox.display : ""
     		device.appendChild(dt)
 
 		var achievement = document.createElement("div")
@@ -263,13 +256,6 @@ Module.register("MMM-Xbox", {
                                 callback: "telegramCommand",
 				description: this.translate("TBTurnoff")
                         },
-			/*
-			{       command: "launch",
-                                callback: "telegramCommand",
-                                description: this.translate("TBLaunch")
-                        }
-			*/
-
     	   	]
   	},
 
@@ -282,12 +268,6 @@ Module.register("MMM-Xbox", {
                         handler.reply("TEXT", this.translate("RTBTurn"))
                         this.notificationReceived("XBOX_OFF", handler.args, "MMM-TelegramBot")
                 }
-		/*
-		if (command == "launch") {
-                        handler.reply("TEXT", "Commande en développement...")
-                        this.notificationReceived("XBOX_LAUNCH", handler.args, "MMM-TelegramBot")
-                }
-		*/
   },
 
 });

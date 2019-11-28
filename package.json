@@ -1,6 +1,6 @@
 {
   "name": "MMM-Xbox",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Xbox Module For MagicMirror.",
   "main": "MMM-Xbox.js",
   "keywords": [

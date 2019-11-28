@@ -77,7 +77,7 @@
 
 #XBOX_COVER {
   width: calc(var(--sp-width) - 40px);
-  height: calc(var(--sp-width) - 40px)+50%;
+  height: calc(var(--sp-width) - 40px);
   margin-bottom:5px;
 }
 
@@ -87,3 +87,36 @@
   border-radius:10px;
 }
 
+/* style "mini" */
+#XBOX.mini {
+	var(--sp-width);
+}
+
+#XBOX.mini #XBOX_FOREGROUND {
+	flex-direction:row;
+  	padding:0;
+}
+
+#XBOX.mini #XBOX_COVER {
+	width:calc(var(--sp-width) - 240px);
+	height:120px;
+	padding:0;
+}
+
+#XBOX.mini #XOBX_COVER_IMAGE {
+	height:120px;
+}
+
+#XBOX.mini #XBOX_INFO {
+	width:calc(var(--sp-width) - 120px);
+	padding-left:10px;
+	margin-top:5px;
+}
+
+#XBOX.mini #XBOX_INFO .fas {
+	margin:0;
+}
+
+#XBOX.mini.noPlayback {
+  	width:calc(var(--sp-width) - 240px);
+}
