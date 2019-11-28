@@ -116,7 +116,3 @@
 #XBOX.mini #XBOX_INFO .fas {
 	margin:0;
 }
-
-#XBOX.mini.noPlayback {
-  	width:calc(var(--sp-width) - 240px);
-}

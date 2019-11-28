@@ -198,7 +198,7 @@ module.exports = NodeHelper.create({
 	this.lastgame = this.XBOX.name
 	if (this.XBOX.status) setTimeout(function(){ self.xbox_status() } , 1000) // nouveau scan car la Xbox est en ligne
 	else {
-		console.log("[Xbox] Connection lost with " + this.display + "(" + this.config.ip + ")") // connexion perdu ... on redémarre le scan complet
+		console.log("[Xbox] Connection lost with " + this.display + " (" + this.config.ip + ")") // connexion perdu ... on redémarre le scan complet
 		this.rest_server_stop();
 		this.xbox_connected = false
 		this.checked = 0
@@ -233,12 +233,10 @@ module.exports = NodeHelper.create({
 		if (message.message == "Login success") {
 			console.log('[Xbox] Login ' + message.gamertag + ' Success !');
 			self.xbox_device();
-			self.sendSocketNotification("LOGGED")
 		}
 		if (message.message == "An account is already signed in.. please logout first") {
 			console.log("[Xbox] Login Token Found !")
 			self.xbox_device();
-			self.sendSocketNotification("LOGGED")
 		}
 	})
     },
@@ -304,14 +302,13 @@ module.exports = NodeHelper.create({
                 	if (stdout.trim()) {
 				console.log("[Xbox] Xbox SmartGlass Rest Server : Ok -- Pid:",stdout.trim())
 				self.xbox_pid = stdout.trim()
-				self.sendSocketNotification("INITIALIZED", true);
+				// time for login because delay to launch Rest Server
+				setTimeout(() => { self.xbox_login() } , self.config.timetologin);
 			} else {
 				console.log("[Xbox] Xbox SmartGlass Rest Server : Error !")
-				self.sendSocketNotification("INITIALIZED", false);
 			}
 		} else {
 			console.log("[Xbox] Xbox SmartGlass Rest Server : Check Error !")
-			self.sendSocketNotification("INITIALIZED", false);
 		}
 	})
     },
@@ -321,8 +318,6 @@ module.exports = NodeHelper.create({
 		this.config = payload;
 		this.xbox_main()
 	}
-
-        if (notification === 'LOGIN') this.xbox_login();
 
 	if (notification === 'XBOX_ON') this.xbox_on()
 	if (notification === 'XBOX_OFF') this.xbox_off()

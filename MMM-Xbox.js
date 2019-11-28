@@ -8,7 +8,6 @@ Module.register("MMM-Xbox", {
 		xboxlivelogin: "",
 		xboxlivepassword: "",
 		timetologin: 3000
-
 	},
 
   	configAssignment : function (result) {
@@ -48,7 +47,6 @@ Module.register("MMM-Xbox", {
 	},
 
 	notificationReceived: function (notification, payload) {
-
         	if (notification === 'DOM_OBJECTS_CREATED') {
             		//DOM creation complete, let's start the module
 			this.sendSocketNotification("INIT", this.config);
@@ -62,25 +60,22 @@ Module.register("MMM-Xbox", {
 			var self = this
 			this.Xbox = payload;
 
-			if (this.LastState != this.Xbox.status) this.sendNotification(this.Xbox.status ? "XBOX_ACTIVE" : "XBOX_INACTIVE")
+			if (this.LastState != this.Xbox.status) this.sendNotification(this.Xbox.status ? "XBOX_ACTIVE" : "XBOX_INACTIVE") 
 			if (this.Xbox.name && this.LastGameApp != this.Xbox.name) this.sendNotification("XBOX_NAME", this.translate(this.Xbox.name))
 
 			this.LastState = this.Xbox.status
 			this.LastGameApp = this.Xbox.name
+
 			if (this.Xbox.name != "") this.Init=false
+
 			this.updateDom();
+
 			if (this.Xbox.status) this.resetCounter()
 			else this.Init = true
 		}
 		if (notification === "ACHIEVEMENT") {
 			if (payload) this.Achievement = payload
 		}
-		if (notification === "INITIALIZED") {
-			if (payload) {
-				setTimeout(() => { this.sendSocketNotification("LOGIN"); } , this.config.timetologin);
-			}
-		}
-		if (notification === "LOGGED") this.updateDom();
 	},
 
   	getDom: function(){
@@ -128,10 +123,10 @@ Module.register("MMM-Xbox", {
     		var tt = document.createElement("span")
     		tt.className = "text"
 		if (this.Init && this.Xbox.status) tt.innerHTML = this.translate("LOADING");
+
 		if (!this.Xbox.status || (!this.Init && !this.Xbox.status)) tt.innerHTML = this.translate("NOTCONNECTED");
-		else if (this.Xbox.name) {
-			tt.innerHTML = this.translate(this.Xbox.name)
-		}
+		else if (this.Xbox.name) tt.innerHTML = this.translate(this.Xbox.name)
+
     		title.appendChild(tt)
 
     		var device = document.createElement("div")
