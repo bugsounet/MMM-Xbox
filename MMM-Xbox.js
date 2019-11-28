@@ -93,7 +93,7 @@ Module.register("MMM-Xbox", {
 
     		var back = document.createElement("div")
     		back.id = "XBOX_BACKGROUND"
-		if (this.Xbox.type == "Game" && this.Xbox.img) back.style.backgroundImage = `url(${this.Xbox.img})`
+		if (this.Xbox.type == "Game" && this.Xbox.img && !this.config.mini) back.style.backgroundImage = `url(${this.Xbox.img})`
 		else back.style.backgroundImage = ""
     		m.appendChild(back)
 
