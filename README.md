@@ -63,9 +63,10 @@ The plugin needs to be allowed to connect to your Xbox. To allow this make sure 
 ## Change Log
  
 ### 2019/11/28:
-* Detect power state still really buggy ... try another sript.
+* Cleaning Code
+* Detect power state still really buggy ... try another script.
 * Add Mini display Style
-* Autodetect Xbox LiveID ans Xbox Name
+* Autodetect Xbox LiveID and Xbox Name
 ### 2019/11/27:
 * Use Xbox Smartglass Node for check xbox power status, Rest server only when xbox power on
 ### 2019/11/26:
