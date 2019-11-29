@@ -170,7 +170,7 @@ module.exports = NodeHelper.create({
 						if (self.config.debug) console.log("[Xbox] Timeout... Retry Achievement")
 						self.xbox_achievement();
 			} , 2000 )
-                        return console.log('[Xbox] Connect error:', error);
+                        return console.log('[Xbox] Achievement error:', error);
                 }
                 message = JSON.parse(body)
 		if (message.titles[0]) {
@@ -190,7 +190,8 @@ module.exports = NodeHelper.create({
 		// debug mode
 		if (this.XBOX.status) {
 			if (this.config.debug) console.log("[Xbox] " + this.display + " (" + this.config.ip + "): " + this.XBOX.status);
-			console.log("[Xbox] " + (this.XBOX.type == "Game" ? "Game: " : "App: ") + this.XBOX.name + (this.config.debug ? (" -img: " + this.XBOX.img) : ""))
+			console.log("[Xbox] " + (this.XBOX.type == "Game" ? "Game: " : "App: ") + this.XBOX.name)
+			if (this.config.debug) console.log("[Xbox] Img: " + this.XBOX.img)
 		}
 		self.sendSocketNotification("RESULT", this.XBOX); // envoi les infos
 	}
@@ -198,11 +199,11 @@ module.exports = NodeHelper.create({
 	this.lastgame = this.XBOX.name
 	if (this.XBOX.status) setTimeout(function(){ self.xbox_status() } , 1000) // nouveau scan car la Xbox est en ligne
 	else {
-		console.log("[Xbox] Connection lost with " + this.display + " (" + this.config.ip + ")") // connexion perdu ... on redémarre le scan complet
-		this.rest_server_stop();
+		console.log("[Xbox] Connection lost with " + this.display + " (" + this.config.ip + ")") // connexion perdu ...
+		this.rest_server_stop(); // stop le Rest server
 		this.xbox_connected = false
 		this.checked = 0
-		setTimeout(() => {
+		setTimeout(() => { // attend 30 sec (delai pour le reboot) et relance le main
 			console.log("[Xbox] Waiting for new connection...")
 			this.xbox_main();
 		},30000)

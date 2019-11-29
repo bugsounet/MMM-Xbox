@@ -8,5 +8,6 @@
 	"TBTurnoff": "Eteins la Xbox.",
 	"TBLaunch": "Lance un jeu ou une application.",
 	"RTBTurn": "La commande a été envoyée.",
+	"RTBTurnError": "Opération impossible, les caractéristiques de la Xbox ne sont pas connues."
 	"NOTCONNECTED" : "Non connecté"
 }

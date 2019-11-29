@@ -60,7 +60,7 @@ Module.register("MMM-Xbox", {
 			var self = this
 			this.Xbox = payload;
 
-			if (this.LastState != this.Xbox.status) this.sendNotification(this.Xbox.status ? "XBOX_ACTIVE" : "XBOX_INACTIVE") 
+			if (this.LastState != this.Xbox.status) this.sendNotification(this.Xbox.status ? "XBOX_ACTIVE" : "XBOX_INACTIVE")
 			if (this.Xbox.name && this.LastGameApp != this.Xbox.name) this.sendNotification("XBOX_NAME", this.translate(this.Xbox.name))
 
 			this.LastState = this.Xbox.status
@@ -111,7 +111,6 @@ Module.register("MMM-Xbox", {
 
     		var title = document.createElement("div")
     		title.id = "XBOX_TITLE"
-
     		var ti = document.createElement("span")
     		ti.className = "iconify"
 		if (this.Xbox.type == "Game") ti.dataset.icon = "mdi:xbox-controller"
@@ -254,15 +253,18 @@ Module.register("MMM-Xbox", {
     	   	]
   	},
 
-  	telegramCommand: function(command, handler) {
+	telegramCommand: function(command, handler) {
 		if (command == "turnon") {
-                        handler.reply("TEXT", this.translate("RTBTurn"))
-                        this.notificationReceived("XBOX_ON", handler.args, "MMM-TelegramBot")
+			if (this.Xbox.display == "") handler.reply("TEXT", this.translate("RTBTurnError"))
+                        else {
+				handler.reply("TEXT", this.translate("RTBTurn"))
+                        	this.notificationReceived("XBOX_ON", handler.args, "MMM-TelegramBot")
+			}
 		}
 		if (command == "turnoff") {
                         handler.reply("TEXT", this.translate("RTBTurn"))
                         this.notificationReceived("XBOX_OFF", handler.args, "MMM-TelegramBot")
                 }
-  },
+	},
 
 });
