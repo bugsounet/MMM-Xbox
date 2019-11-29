@@ -8,7 +8,7 @@ The Xbox SmartGlass For Magic Mirror
 * Mini Style:<br><br>
 ![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshoot2.jpg)
 
-## Installation (for testing)
+## Installation
 ```
 cd ~/Magicmirror/modules
 git clone https://github.com/bugsounet/MMM-Xbox.git
