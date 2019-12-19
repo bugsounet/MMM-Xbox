@@ -2,35 +2,21 @@
 
 The Xbox SmartGlass For Magic Mirror
 
-## Development Status...
+## Screenshoot
+* Default Style:<br><br>
+![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshoot.jpg)<br>
+* Mini Style:<br><br>
+![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshoot2.jpg)
 
-* Use SmartGlass Rest Server : ok
-* Show cover of the current game on Xbox: ok
-* Translation if Application : ok
-* Multi Translation : ok (only English and French ... need help)
-* Show current game (or app) play time : ok
-* Display Achievements : ok
-* Command start and stop Xbox : ok
-* Notification Received or start and stop Xbox : ok
-* Notification Xbox Active / Inactive to other modules: ok
-* Notification New Game to other modules : ok
-* Hide module when inactive : ok (option)
-* TelegramBot Commands : ok (start & stop xbox)
-* Translate Reply Telegram Commands : not yet implented -- just only French reply
-* Launch Game by TelegramBot or notification : not possible removed by M$
-
-## Dev Screenshoot
-![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshoot.jpg)
-
-## Installation (for testing)
+## Installation
 ```
 cd ~/Magicmirror/modules
 git clone https://github.com/bugsounet/MMM-Xbox.git
 cd MMM-Xbox
-./install.sh
+npm install
 ```
 
-## Config
+## Configuration
 ```
   {
     module: "MMM-Xbox",
@@ -48,9 +34,6 @@ cd MMM-Xbox
 ## Setting up the Xbox
 The plugin needs to be allowed to connect to your Xbox. To allow this make sure you set the setting to allow anonymous connections in Settings -> Devices -> Connections.
 
-## Known Bug:
-* Reconnect / Connect detection script don't work after a few hour... (Working around)
-
 ## Notification Sent:
 * XBOX_ACTIVE : the console is on-line
 * XBOX_INACTIVE : the console is off-line
@@ -60,8 +43,17 @@ The plugin needs to be allowed to connect to your Xbox. To allow this make sure 
 * XBOX_ON : turn on the console
 * XBOX_OFF : turn off the console
 
+## TelegramBot Commands
+* /turnon : Wake up the xbox
+* /turnoff : Shutdown the xbox
+
 ## Change Log
- 
+
+### 2019/11/29
+* Rewrite README
+* Cleaning Code 
+* delete install.sh script and new npm install script for dependencies
+* Correct translation Fr/En file 
 ### 2019/11/28:
 * Cleaning Code
 * Detect power state still really buggy ... try another script.
