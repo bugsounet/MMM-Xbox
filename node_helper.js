@@ -24,8 +24,9 @@ module.exports = NodeHelper.create({
       "achievement" : ""
     }
     this.lastgame = ""
+    this.laststatus = true
     this.xbox_pid = 0
-    this.checked = 0
+    this.checked = 1
     this.liveid = ""
     this.display = ""
   },
@@ -43,16 +44,18 @@ module.exports = NodeHelper.create({
       if (self.config.debug) console.log("[Xbox] Check Xbox Really On:  " + self.checked + "/2");
       if (self.checked == 2) {
         console.log("[Xbox] Dectected: Xbox On !");
-        self.checked = 0
+        self.checked = 1
         self.XBOX.status = true
         self.sendSocketNotification("RESULT", self.XBOX);
+        self.laststatus = true
       }
       else self.checked += 1
     }, function(){
-      if (self.config.debug) console.log("[Xbox] Not Connected")
-      self.checked = 0
+      if (self.config.debug & self.laststatus) console.log("[Xbox] Not Connected")
+      self.checked = 1
       self.XBOX.status = false
-      self.sendSocketNotification("RESULT", self.XBOX);
+      if (self.laststatus) self.sendSocketNotification("RESULT", self.XBOX);
+      self.laststatus = false
     });
   },
 
@@ -99,7 +102,7 @@ module.exports = NodeHelper.create({
 		return self.xbox_close()
       }
 
-       message = JSON.parse(body)
+       message = JSON.parse(body) // ??? need to check boby ???
 
       if (message.success == true) {
         console.log("[Xbox] Connected to SmartGlass !")
@@ -156,7 +159,7 @@ module.exports = NodeHelper.create({
       if (error) return console.log("[Xbox] Achievement: " + error); // retournera les infos au prochain essai
 
       message = JSON.parse(body)
-      if (message.titles[0]) {
+      if (message.titles && message.titles[0]) {
         self.ACHIEVEMENT.name = message.titles[0].name
         self.ACHIEVEMENT.score = message.titles[0].achievement.currentGamerscore + "/" + message.titles[0].achievement.totalGamerscore
         self.ACHIEVEMENT.progress = message.titles[0].achievement.progressPercentage,
@@ -204,14 +207,14 @@ module.exports = NodeHelper.create({
     }
     this.lastgame = ""
     this.xbox_pid = 0
-    this.checked = 0
+    this.checked = 1
     this.liveid = ""
 
     this.sendSocketNotification("RESULT", this.XBOX);
-    setTimeout(() => { // attend 30 sec (delai pour le reboot) et relance le main
+    setTimeout(() => {
       console.log("[Xbox] Waiting for new connection...")
       this.xbox_main();
-    },30000)
+    },5000)
   },
 
   xbox_login: function() {

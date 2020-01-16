@@ -15,6 +15,14 @@
   text-shadow:black 2px 2px 2px;
 }
 
+#XBOX_TIME.hidden {
+  display:none;
+}
+
+#XBOX_ACHIEVEMENT.hidden {
+  display:none;
+}
+
 #XBOX * {
   box-sizing: border-box;
 }
@@ -63,10 +71,13 @@
 }
 
 #XBOX_INFO .text {
-  width: calc(var(--sp-width) - 70px);
+  display:inline-block;
+}
+
+#XBOX_INFO .name {
   overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   display:inline-block;
 }
 
@@ -86,6 +97,7 @@
   height:100%;
   border-radius:10px;
 }
+
 
 /* style "mini" */
 #XBOX.mini {

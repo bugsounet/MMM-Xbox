@@ -40,11 +40,12 @@ Module.register("MMM-Xbox", {
     this.Achievement = {}
     this.LastState = false
     this.LastGameApp = ""
+    this.intervalTime = 0
+    this.counterTime = 0
   },
 
   notificationReceived: function (notification, payload) {
     if (notification === 'DOM_OBJECTS_CREATED') {
-      //DOM creation complete, let's start the module
       this.sendSocketNotification("INIT", this.config);
   	}
     if (notification === 'XBOX_ON') this.sendSocketNotification("XBOX_ON");
@@ -57,35 +58,91 @@ Module.register("MMM-Xbox", {
       this.Xbox = payload;
 
       if (this.LastState != this.Xbox.status) this.sendNotification(this.Xbox.status ? "XBOX_ACTIVE" : "XBOX_INACTIVE")
-      if (this.Xbox.name && this.LastGameApp != this.Xbox.name) this.sendNotification("XBOX_NAME", this.translate(this.Xbox.name))
-
+      if (this.Xbox.name && this.LastGameApp != this.Xbox.name) {
+        this.sendNotification("XBOX_NAME", this.translate(this.Xbox.name))
+        this.resetCounter()
+        this.doCounter()
+      }
+      else {
+        this.resetCounter()
+        this.Init=true
+      }
       this.LastState = this.Xbox.status
       this.LastGameApp = this.Xbox.name
 
-      if (this.Xbox.name != "") this.Init=false
+      this.updateResult()
 
-      this.updateDom()
+      if (!this.Xbox.name) this.Init=false
 
-      if (this.Xbox.status) this.resetCounter()
-      else this.Init = true
     }
     if (notification === "ACHIEVEMENT") {
-      if (payload) this.Achievement = payload
+      if (payload) {
+        this.Achievement = payload
+        this.updateAchievement()
+      }
     }
+  },
+
+  updateAchievement: function() {
+	var score = document.getElementById("XBOX_ACHIEVEMENT_SCORE")
+	var progress = document.getElementById("XBOX_ACHIEVEMENT_PROGRESS")
+	var achievement = document.getElementById("XBOX_ACHIEVEMENT_ACHIEVEMENT")
+
+    if (this.Achievement.name == this.Xbox.name && this.Xbox.type == "Game") { // Achievement update
+      score.textContent = this.Achievement.score
+      progress.textContent = this.Achievement.progress + "%"
+      achievement.textContent = this.Achievement.achievement
+    }
+    else {
+      score.textContent = "-/-"
+      progress.textContent = "-%"
+      achievement.textContent = "-"
+    }
+  },
+
+  updateResult: function() {
+	var xbox = document.getElementById("XBOX")
+	var back = document.getElementById("XBOX_BACKGROUND")
+	var cover_img = document.getElementById("XBOX_COVER_IMAGE")
+	var tt = document.getElementById("XBOX_TITLE_NAME")
+	var di = document.getElementById("XBOX_DEVICE_ICON")
+	var dt = document.getElementById("XBOX_DEVICE_NAME")
+	var ti = document.getElementById("XBOX_TIME")
+	var ac = document.getElementById("XBOX_ACHIEVEMENT")
+
+	if (this.Xbox.status) xbox.classList.remove("inactive")
+    else if (this.config.autohide) xbox.classList.add("inactive")
+
+	if (this.Xbox.type == "Game" && this.Xbox.img && !this.config.mini) back.style.backgroundImage = `url(${this.Xbox.img})`
+    else back.style.backgroundImage = ""
+
+    if (this.Xbox.img) cover_img.src = this.Xbox.img
+    else cover_img.src = "./modules/MMM-Xbox/resources/xbox.png"
+
+    if (this.Init && this.Xbox.status) tt.innerHTML = this.translate("LOADING");
+    if (!this.Xbox.status || (!this.Init && !this.Xbox.status)) tt.innerHTML = this.translate("NOTCONNECTED");
+    else if (this.Xbox.name) tt.innerHTML = this.translate(this.Xbox.name)
+
+    di.dataset.icon = this.Xbox.display ? "mdi:xbox-controller" : ""
+    dt.textContent = this.Xbox.display ? this.Xbox.display : ""
+
+    if (!this.Xbox.name) ti.classList.add("hidden")
+    else ti.classList.remove("hidden")
+
+    if (this.Xbox.type == "Game") ac.classList.remove("hidden")
+    else ac.classList.add("hidden")
   },
 
   getDom: function(){
     var m = document.createElement("div")
     m.id = "XBOX"
-    if (this.Xbox.status) m.classList.remove("inactive")
-    else if (this.config.autohide) m.classList.add("inactive")
+    if (this.config.autohide) m.classList.add("inactive")
 
     if (this.config.mini) m.classList.add("mini")
 
     var back = document.createElement("div")
     back.id = "XBOX_BACKGROUND"
-    if (this.Xbox.type == "Game" && this.Xbox.img && !this.config.mini) back.style.backgroundImage = `url(${this.Xbox.img})`
-    else back.style.backgroundImage = ""
+    back.style.backgroundImage = ""
     m.appendChild(back)
 
     var fore = document.createElement("div")
@@ -96,121 +153,121 @@ Module.register("MMM-Xbox", {
 
     var cover_img = document.createElement("img")
     cover_img.id = "XBOX_COVER_IMAGE"
-    if (this.Xbox.img) cover_img.src = this.Xbox.img
-      else cover_img.src = "./modules/MMM-Xbox/resources/xbox.png"
+    cover_img.src = "./modules/MMM-Xbox/resources/xbox.png"
 
-      cover.appendChild(cover_img)
-      fore.appendChild(cover)
+    cover.appendChild(cover_img)
+    fore.appendChild(cover)
 
-      var info = document.createElement("div")
-      info.id = "XBOX_INFO"
+    var info = document.createElement("div")
+    info.id = "XBOX_INFO"
 
-      var title = document.createElement("div")
-      title.id = "XBOX_TITLE"
-      var ti = document.createElement("span")
-      ti.className = "iconify"
-      ti.dataset.icon = "mdi:xbox"
-      ti.dataset.inline = "false"
-      title.appendChild(ti)
+    var title = document.createElement("div")
+    title.id = "XBOX_TITLE"
+    var ti = document.createElement("div")
+    ti.id = "XBOX_TITLE_ICON"
+    ti.className = "iconify"
+    ti.dataset.icon = "mdi:xbox"
+    ti.dataset.inline = "false"
+    title.appendChild(ti)
 
-      var tt = document.createElement("span")
-      tt.className = "text"
-      if (this.Init && this.Xbox.status) tt.innerHTML = this.translate("LOADING");
+    var tt = document.createElement("div")
+    tt.id = "XBOX_TITLE_NAME"
+    tt.className = "name"
 
-      if (!this.Xbox.status || (!this.Init && !this.Xbox.status)) tt.innerHTML = this.translate("NOTCONNECTED");
-      else if (this.Xbox.name) tt.innerHTML = this.translate(this.Xbox.name)
+    tt.innerHTML = this.translate("NOTCONNECTED");
 
-      title.appendChild(tt)
+    title.appendChild(tt)
 
-      var device = document.createElement("div")
-      device.id = "XBOX_DEVICE"
-      var di = document.createElement("span")
-      di.className = "iconify"
-      if (this.Xbox.display) di.dataset.icon = "mdi:xbox-controller"
-      di.dataset.inline = "false"
-      device.appendChild(di)
-      var dt = document.createElement("span")
-      dt.className = "text"
-      dt.textContent = this.Xbox.display ? this.Xbox.display : ""
-      device.appendChild(dt)
+    var device = document.createElement("div")
+    device.id = "XBOX_DEVICE"
+    var di = document.createElement("div")
+    di.id = "XBOX_DEVICE_ICON"
+    di.className = "iconify"
+    di.dataset.inline = "false"
+    device.appendChild(di)
+    var dt = document.createElement("div")
+    dt.id = "XBOX_DEVICE_NAME"
+    dt.className = "text"
+    dt.textContent = ""
+    device.appendChild(dt)
 
-      var achievement = document.createElement("div")
-      achievement.id = "XBOX_ACHIEVEMENT"
-      if (this.Xbox.type == "Game") {
-        var as = document.createElement("span")
-        as.className = "iconify"
-        as.dataset.icon = "emojione-monotone:letter-g"
-        as.dataset.inline = "false"
-        achievement.appendChild(as)
-        var ast = document.createElement("span")
-        ast.className = "text_score"
-        ast.textContent = "-/-"
-        achievement.appendChild(ast)
-        var aa = document.createElement("span")
-        aa.style.marginLeft = "20px";
-        aa.className = "iconify"
-        aa.dataset.icon = "fa-solid:trophy"
-        aa.dataset.inline = "false"
-        achievement.appendChild(aa)
-        var aat = document.createElement("span")
-        aat.className = "text_achievement"
-        aat.textContent = "-"
-        achievement.appendChild(aat)
-        var ap = document.createElement("span")
-        ap.style.marginLeft = "20px";
-        ap.className = "iconify"
-        ap.dataset.icon = "vaadin:book-percent"
-        ap.dataset.inline = "false"
-        achievement.appendChild(ap)
-        var apt = document.createElement("span")
-        apt.className = "text_progress"
-        apt.textContent = "-%"
-        achievement.appendChild(apt)
-      }
+    var achievement = document.createElement("div")
+    achievement.id = "XBOX_ACHIEVEMENT"
+    achievement.classList.add("hidden")
+    var as = document.createElement("div")
+    as.id = "XBOX_ACHIEVEMENT_ICON1"
+    as.className = "iconify"
+    as.dataset.icon = "emojione-monotone:letter-g"
+    as.dataset.inline = "false"
+    achievement.appendChild(as)
+    var ast = document.createElement("div")
+    ast.id = "XBOX_ACHIEVEMENT_SCORE"
+    ast.className = "text"
+    ast.textContent = "-/-"
+    achievement.appendChild(ast)
+    var aa = document.createElement("div")
+    aa.id = "XBOX_ACHIEVEMENT_ICON2"
+    aa.style.marginLeft = "10px";
+    aa.className = "iconify"
+    aa.dataset.icon = "fa-solid:trophy"
+    aa.dataset.inline = "false"
+    achievement.appendChild(aa)
+    var aat = document.createElement("div")
+    aat.id = "XBOX_ACHIEVEMENT_ACHIEVEMENT"
+    aat.className = "text"
+    aat.textContent = "-"
+    achievement.appendChild(aat)
+    var ap = document.createElement("div")
+    ap.id = "XBOX_ACHIEVEMENT_ICON3"
+    ap.style.marginLeft = "10px";
+    ap.className = "iconify"
+    ap.dataset.icon = "vaadin:book-percent"
+    ap.dataset.inline = "false"
+    achievement.appendChild(ap)
+    var apt = document.createElement("div")
+    apt.id = "XBOX_ACHIEVEMENT_PROGRESS"
+    apt.className = "text"
+    apt.textContent = "-%"
+    achievement.appendChild(apt)
 
-      var time = document.createElement("div")
-      time.id = "XBOX_TIME"
-      if (this.Xbox.name) {
-        var ti = document.createElement("span")
-        ti.className = "iconify"
-        ti.dataset.icon = "si-glyph:timer"
-        ti.dataset.inline ="false"
-        time.appendChild(ti)
-        var td = document.createElement("span")
-        td.className = "text"
-        td.textContent = "--:--:--"
-        time.appendChild(td)
-      }
+    var time = document.createElement("div")
+    time.id = "XBOX_TIME"
+    time.classList.add("hidden")
+    var ti = document.createElement("div")
+    ti.id = "XBOX_TIME_ICON"
+    ti.className = "iconify"
+    ti.dataset.icon = "si-glyph:timer"
+    ti.dataset.inline ="false"
+    time.appendChild(ti)
+    var td = document.createElement("div")
+    td.id = "XBOX_TIME_TEXT"
+    td.className = "text"
+    td.textContent = "--:--:--"
+    time.appendChild(td)
 
-      info.appendChild(title)
-      info.appendChild(device)
-      info.appendChild(achievement)
-      info.appendChild(time)
-      fore.appendChild(info)
+    info.appendChild(title)
+    info.appendChild(device)
+    info.appendChild(achievement)
+    info.appendChild(time)
+    fore.appendChild(info)
 
-      m.appendChild(fore)
-      return m
+    m.appendChild(fore)
+    return m
   },
 
   resetCounter: function () {
     var self = this;
-    clearInterval(self.intervalTime);
-    self.counterTime = 0
-
-    self.intervalTime = setInterval(function () {
+    var time = document.getElementById("XBOX_TIME_TEXT")
+    clearInterval(this.intervalTime);
+    this.counterTime = 0
+    time.textContent = "--:--:--"
+  },
+  doCounter: function() {
+	var self = this;
+    var time = document.getElementById("XBOX_TIME_TEXT")
+    this.intervalTime = setInterval(function () {
       self.counterTime += 1000;
-      if (self.Achievement.name == self.Xbox.name && self.Xbox.type == "Game") { // Achievement update
-        var score = document.querySelector("#XBOX_ACHIEVEMENT .text_score")
-        score.textContent = self.Achievement.score
-        var progress = document.querySelector("#XBOX_ACHIEVEMENT .text_progress")
-        progress.textContent = self.Achievement.progress + "%"
-        var achievement = document.querySelector("#XBOX_ACHIEVEMENT .text_achievement")
-        achievement.textContent = self.Achievement.achievement
-      }
-      if (self.Xbox.status && !self.Init) {
-        var time = document.querySelector("#XBOX_TIME .text") // time uptime
-        time.textContent = new Date(self.counterTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/)[0];
-      }
+      time.textContent = new Date(self.counterTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/)[0];
     }, 1000);
   },
 
