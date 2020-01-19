@@ -69,7 +69,12 @@ module.exports = NodeHelper.create({
         return self.xbox_close()
       }
 
-      message = JSON.parse(body)
+      try {
+        message = JSON.parse(body)
+      } catch (e) {
+        console.log("[Xbox] Device: JSON Error !")
+        return self.xbox_close();
+      }
 
       if(message.success == true) {
         if (Object.keys(message.devices).length > 0) {
@@ -99,10 +104,14 @@ module.exports = NodeHelper.create({
     request.get('http://127.0.0.1:5557/device/' + self.liveid + '/connect', {timeout: 5000}, function (error, response, body) {
       if (error) {
         console.log("[Xbox] Connect: " + error);
-		return self.xbox_close()
+        return self.xbox_close()
       }
-
-       message = JSON.parse(body) // ??? need to check boby ???
+      try {
+        message = JSON.parse(body)
+      } catch (e) {
+        console.log("[Xbox] Connect: JSON Error !")
+        return self.xbox_close();
+      }
 
       if (message.success == true) {
         console.log("[Xbox] Connected to SmartGlass !")
@@ -121,10 +130,14 @@ module.exports = NodeHelper.create({
     request.get('http://127.0.0.1:5557/device/' + this.liveid + '/console_status', {timeout: 5000}, function (error, response, body) {
       if (error) {
         console.log("[Xbox] Status: " + error);
-		return self.xbox_close()
+        return self.xbox_close()
       }
-
-      message = JSON.parse(body)
+      try {
+        message = JSON.parse(body)
+      } catch (e) {
+        console.log("[Xbox] Status: JSON Error !")
+        return self.xbox_close();
+      }
 
       if (message.console_status && message.console_status.active_titles[0] && message.success == true) {
         self.XBOX.status = true;
@@ -158,7 +171,11 @@ module.exports = NodeHelper.create({
     request.get('http://127.0.0.1:5557/web/titlehistory', {timeout: 10000 }, function (error, response, body) {
       if (error) return console.log("[Xbox] Achievement: " + error); // retournera les infos au prochain essai
 
-      message = JSON.parse(body)
+      try {
+        message = JSON.parse(body)
+      } catch (e) {
+        return console.log("[Xbox] Achievement: JSON Error !")
+      }
       if (message.titles && message.titles[0]) {
         self.ACHIEVEMENT.name = message.titles[0].name
         self.ACHIEVEMENT.score = message.titles[0].achievement.currentGamerscore + "/" + message.titles[0].achievement.totalGamerscore
@@ -237,7 +254,13 @@ module.exports = NodeHelper.create({
         return console.log("[Xbox] Login unkown error: ", err);
       }
 
-      message = JSON.parse(body)
+      try {
+        message = JSON.parse(body)
+      } catch (e) {
+        console.log("[Xbox] LOGIN: JSON Error !")
+        return self.xbox_close();
+      }
+
       if (message.message == "Login success") {
         console.log('[Xbox] Login ' + message.gamertag + ' Success !');
         return self.xbox_device();
