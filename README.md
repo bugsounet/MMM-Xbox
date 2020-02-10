@@ -28,6 +28,7 @@ npm install
 		  ip: "", // ip adress of the xbox
 		  xboxlivelogin: "", // xbox live login
 		  xboxlivepassword: "" // xbox live password
+    }
   },
 ```
 
