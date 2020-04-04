@@ -2,7 +2,7 @@
 
 The Xbox SmartGlass For Magic Mirror
 
-## Maintenance information
+## 04/04/2020 - Maintenance information 
 
 **Main librabry is now DEPRECATED (xbox-smartglass-rest)**
 
