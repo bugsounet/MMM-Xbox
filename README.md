@@ -2,14 +2,6 @@
 
 The Xbox SmartGlass For Magic Mirror
 
-## 04/04/2020 - Maintenance information 
-
-**Main librabry is now DEPRECATED (xbox-smartglass-rest)**
-
-**Please wait next update !**
-
-**This module will be maintained**
-
 ## Screenshoot
 * Default Style:<br><br>
 ![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshoot.jpg)<br>
