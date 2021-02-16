@@ -64,3 +64,7 @@ The plugin needs to be allowed to connect to your Xbox. To allow this make sure 
 * Use Xbox Smartglass Node for check xbox power status, Rest server only when xbox power on
 ### 2019/11/26:
 * Initial Public Beta
+
+## Support and Helping
+
+Support is now on [the 4th Party Modules Forum](http://forum.bugsounet.fr)
