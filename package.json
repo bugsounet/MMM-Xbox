@@ -1,10 +1,11 @@
 {
   "name": "MMM-Xbox",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "description": "Xbox Module For MagicMirror.",
   "main": "MMM-Xbox.js",
   "scripts": {
-    "install": "scripts/install.sh"
+    "install": "scripts/install.sh",
+    "clean": "scripts/clean.sh"
   },
   "keywords": [
     "magic mirror",

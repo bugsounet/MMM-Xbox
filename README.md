@@ -2,14 +2,6 @@
 
 The Xbox SmartGlass For Magic Mirror
 
-## 04/04/2020 - Maintenance information 
-
-**Main librabry is now DEPRECATED (xbox-smartglass-rest)**
-
-**Please wait next update !**
-
-**This module will be maintained**
-
 ## Screenshoot
 * Default Style:<br><br>
 ![](https://github.com/bugsounet/MMM-Xbox/blob/master/screenshoot.jpg)<br>
@@ -40,6 +32,15 @@ npm install
   },
 ```
 
+## You need to reinstall this module ?
+```
+cd ~/Magicmirror/modules/MMM-Xbox
+npm run clean
+npm install
+```
+
+Note: The clean script (`npm run clean`) will delete ALL Xbox dependencies
+
 ## Setting up the Xbox
 The plugin needs to be allowed to connect to your Xbox. To allow this make sure you set the setting to allow anonymous connections in Settings -> Devices -> Connections.
 
@@ -58,6 +59,11 @@ The plugin needs to be allowed to connect to your Xbox. To allow this make sure 
 
 ## Change Log
 
+### 2021/02/21
+* Fix library (tempory)
+* added cleaning script
+* Tests: ok (with Xbox One X)
+
 ### 2019/11/29
 * Rewrite README
 * Cleaning Code 
@@ -72,3 +78,7 @@ The plugin needs to be allowed to connect to your Xbox. To allow this make sure 
 * Use Xbox Smartglass Node for check xbox power status, Rest server only when xbox power on
 ### 2019/11/26:
 * Initial Public Beta
+
+## Support and Helping
+
+Support is now on [the 4th Party Modules Forum](http://forum.bugsounet.fr)
