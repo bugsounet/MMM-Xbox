@@ -32,6 +32,15 @@ npm install
   },
 ```
 
+## You need to reinstall this module ?
+```
+cd ~/Magicmirror/modules/MMM-Xbox
+npm run clean
+npm install
+```
+
+Note: The clean script (`npm run clean`) will delete ALL Xbox dependencies
+
 ## Setting up the Xbox
 The plugin needs to be allowed to connect to your Xbox. To allow this make sure you set the setting to allow anonymous connections in Settings -> Devices -> Connections.
 
@@ -49,6 +58,11 @@ The plugin needs to be allowed to connect to your Xbox. To allow this make sure 
 * /turnoff : Shutdown the xbox
 
 ## Change Log
+
+### 2021/02/21
+* Fix library (tempory)
+* added cleaning script
+* Tests: ok (with Xbox One X)
 
 ### 2019/11/29
 * Rewrite README

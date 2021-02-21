@@ -38,7 +38,9 @@ fi
 # Install xbox-smartglass-rest if necessary.
 if $REST_INSTALL; then
         echo -e "\e[96mInstalling xbox-smartglass-rest ...\e[90m"
-        pip3 install xbox-smartglass-rest || exit
+        pip3 install xbox-smartglass-rest==0.9.8 || exit
+        pip3 install xbox-webapi==1.1.8 || exit
+        pip3 install xbox_smartglass_core==1.2.2 || exit
         echo -e "\e[92mxbox-smartglass-rest installation Done!\e[0m"
 fi
 
